@@ -1,8 +1,8 @@
 - 👋 Hi, I’m @debaxtermsft
 
-These scripts were created for customers to be able to backup all group\groupmemberships and all group\group attributes.
+These scripts were created for customers to be able to backup all AAD Roles, RBAC Roles, and group\groupmemberships and all group\group attributes.
 
-Used with the RBAC export scripts it is possible to rebuild the lost/deleted group, group membership and RBAC roles it may have been assigned (security groups)
+Used with the AAD and RBAC export scripts it is possible to rebuild the lost/deleted group, group membership, AAD Roles and RBAC roles it may have been assigned (security groups)
 
 The RBAC export also can help if users/groups/service principals are deleted (due to a deleted or moved subscription) having the ability to find and reassign the RBAC roles.
 

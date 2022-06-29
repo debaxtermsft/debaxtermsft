@@ -14,11 +14,11 @@
 #CLI Version
 # updated 5/12/22 using objects over arrays
 # Group Attribute example
-#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter All -SecurityofOfficeGroup All -Outputdirectory "c:\temp\"
-#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter Assigned -SecurityofOfficeGroup Azure -Outputdirectory "c:\temp\"
+#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter All -SecurityorOfficeGroup All -Outputdirectory "c:\temp\"
+#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter Assigned -SecurityorOfficeGroup Azure -Outputdirectory "c:\temp\"
 # Group Members examples
-#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter All -SecurityofOfficeGroup All -Outputdirectory "c:\temp\"
-# .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter Dynamic -SecurityofOfficeGroup Office -Outputdirectory "c:\temp\"
+#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter All -SecurityorOfficeGroup All -Outputdirectory "c:\temp\"
+# .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter Dynamic -SecurityorOfficeGroup Office -Outputdirectory "c:\temp\"
 #######################
 
 

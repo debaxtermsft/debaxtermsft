@@ -419,9 +419,7 @@ do
 
         else # condition for all Group Attributes, all a&d and all s/o
         { 
-            $group = get-mggroup -all  |
-               select-object displayname,description, id, securityenabled, IsAssignableToRole, proxyaddresses, GroupTypes,  MailEnabled, Mail, mailnickname,AssignedLabels, MembershipRule |
-                Sort-Object DisplayName 
+            $group = get-mggroup -all | Sort-Object DisplayName 
         }
             if (!$group)
             {
@@ -436,6 +434,7 @@ do
                         [string]$proxy = $item.ProxyAddresses
                         [string]$grouptypes = $item.grouptypes
                         [string]$labels = $item.assignedlables
+                        $groupowner = Get-MgGroupOwner -GroupId $item.id
                     $GAs += New-Object Object |
                                     Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $item.DisplayName -PassThru |
                                     Add-Member -NotePropertyName Group_Description -NotePropertyValue $item.Description -PassThru |
@@ -448,7 +447,8 @@ do
                                     Add-Member -NotePropertyName Mail -NotePropertyValue $item.Mail -PassThru |
                                     Add-Member -NotePropertyName mailnickname -NotePropertyValue $item.mailnickname -PassThru |
                                     Add-Member -NotePropertyName AssignedLabels -NotePropertyValue $labels -PassThru |
-                                    Add-Member -NotePropertyName MembershipRule -NotePropertyValue $item.MembershipRule -PassThru
+                                    Add-Member -NotePropertyName MembershipRule -NotePropertyValue $item.MembershipRule -PassThru | 
+                                    Add-Member -NotePropertyName GroupOwner -NotePropertyValue $groupowner.id -PassThru 
                     } 
                 
             } 

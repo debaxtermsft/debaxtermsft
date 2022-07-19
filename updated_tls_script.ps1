@@ -1,4 +1,4 @@
-$tId = "yourtenantid"  # Add tenant ID from Azure Active Directory page on portal.
+$tId = "7b69d5f1-a08a-4802-9c12-794ca524d88d"  # Add tenant ID from Azure Active Directory page on portal.
 $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
 $agoDays = 4  # Will filter the log for $agoDays from the current date and time.
 $startDate = (Get-Date).AddDays(-($agoDays)).ToString('yyyy-MM-dd')  # Get filter start date.
@@ -48,6 +48,7 @@ if ($legacy.count -ge 1)
                 Add-Member -NotePropertyName IPAddress -NotePropertyValue $SIILog.IPAddress -PassThru |
                 Add-Member -NotePropertyName isInteractive -NotePropertyValue $SIILog.isInteractive -PassThru |
                 Add-Member -NotePropertyName ResourceDisplayName -NotePropertyValue $SIILog.ResourceDisplayName -PassThru |
+                Add-Member -NotePropertyName ResourceServicePrincipal -NotePropertyValue $SIILog.ResourceServicePrincipal -PassThru |
                 Add-Member -NotePropertyName ResourceId -NotePropertyValue $SIILog.ResourceId -PassThru |
                 Add-Member -NotePropertyName UserAgent -NotePropertyValue $SIILog.UserAgent -PassThru |
                 Add-Member -NotePropertyName AuthenticationProcessingDetails0 -NotePropertyValue $userauthprocdetails0 -PassThru |
@@ -55,7 +56,7 @@ if ($legacy.count -ge 1)
                 
             }
             write-host "TLS Login for user " $useritem.userprincipalname 
-            Start-Sleep
+            Start-Sleep 1
     }
 
     
@@ -93,6 +94,7 @@ if($checkSPNlegacylogins.count -ge 1)
                     Add-Member -NotePropertyName IPAddress -NotePropertyValue $SIWILog.IPAddress -PassThru |
                     Add-Member -NotePropertyName ResourceDisplayName -NotePropertyValue $SIWILog.ResourceDisplayName -PassThru |
                     Add-Member -NotePropertyName ResourceId -NotePropertyValue $SIWILog.ResourceId -PassThru |
+                    Add-Member -NotePropertyName ResourceServicePrincipal -NotePropertyValue $SIWILog.ResourceServicePrincipal -PassThru |
                     Add-Member -NotePropertyName ServicePrincipalDisplayName -NotePropertyValue $SIWILog.ServicePrincipalName -PassThru |
                     Add-Member -NotePropertyName ServicePrincipalId -NotePropertyValue $SIWILog.ServicePrincipalId -PassThru |
                     Add-Member -NotePropertyName AuthenticationProcessingDetails0 -NotePropertyValue $authprocdetails0 -PassThru |

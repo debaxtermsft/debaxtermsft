@@ -16,7 +16,7 @@ $SIWIProperties =@()
 # Get the interactive and non-interactive sign-ins based on filtering clauses.
 $legacy = Get-MgAuditLogSignIn -Filter "createdDateTime ge $startDate"  | 
 Where-Object{$_.AuthenticationProcessingDetails.key -match "Legacy"}  | sort-object CreatedDateTime
-
+write-host "SII"
 if ($legacy.count -ge 1)
 {
     $filterUsernames = $legacy | Select-Object userprincipalname | sort-object -Unique  userprincipalname
@@ -30,9 +30,10 @@ if ($legacy.count -ge 1)
             "userPrincipalName eq '$username'"
         )
         $SIIfilter = $clauses[0,3] -join " and "
-        write-host "SII"
+        
         $signInsInteractive = Get-MgAuditLogSignIn -Filter $SIIfilter -All  | 
         Where-Object{$_.AuthenticationProcessingDetails.key -match "Legacy" -and $_.AuthenticationProcessingDetails.Value -eq "True"}
+        write-host "Found Legacy TLS login for user " $useritem.userprincipalname
             foreach ($SIILog in $signInsInteractive)
             {
                 $userauthprocdetails0 = $SIILog.AuthenticationProcessingDetails.key[0]
@@ -56,7 +57,7 @@ if ($legacy.count -ge 1)
                 Add-Member -NotePropertyName authenticationRequirement -NotePropertyValue $SIILog.authenticationRequirement -PassThru
                 
             }
-            write-host "TLS Login for user " $useritem.userprincipalname 
+             
             Start-Sleep 1
     }
 
@@ -67,7 +68,7 @@ $MGserviceprincipals = @()
 $checkSPNlegacylogins = Get-MgAuditLogSignIn -Filter "createdDateTime ge $startDate and signInEventTypes/any(t: t eq 'servicePrincipal')" | 
 sort-object CreatedDateTime  | 
 Where-Object{$_.AuthenticationProcessingDetails.key -match "Legacy"}
-
+write-host "SIWI"
 if($checkSPNlegacylogins.count -ge 1)
 {
     $filterSPNnames = $checkspnlegacylogins | Select-Object appdisplayname | sort-object -Unique  appdisplayname
@@ -81,8 +82,9 @@ if($checkSPNlegacylogins.count -ge 1)
                 "appDisplayName eq '$spnname'"
             )
             $SIWIfilter = $clauses[0,1,2] -join " and "
-            write-host "SIWI"
+
             $signInsWorkloadIdentities = Get-MgAuditLogSignIn -Filter $SIWIfilter -All | ?{$_.AuthenticationProcessingDetails.key -match "Legacy"} 
+            write-host "Found Legacy TLS login for SPN/app " $SPNItem.AppDisplayName
             foreach ($SIWILog in $signInsWorkloadIdentities)
                 {
                     $authprocdetails0 = $SIWILog.AuthenticationProcessingDetails.key[0]
@@ -105,7 +107,7 @@ if($checkSPNlegacylogins.count -ge 1)
                     
                     
                 }
-                write-host "found legacy login for SPN/app " $SPNItem.AppDisplayName
+              
         Start-Sleep 1
     }
 }

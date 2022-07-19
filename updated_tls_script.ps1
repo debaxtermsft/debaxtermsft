@@ -52,7 +52,8 @@ if ($legacy.count -ge 1)
                 Add-Member -NotePropertyName ResourceId -NotePropertyValue $SIILog.ResourceId -PassThru |
                 Add-Member -NotePropertyName UserAgent -NotePropertyValue $SIILog.UserAgent -PassThru |
                 Add-Member -NotePropertyName AuthenticationProcessingDetails0 -NotePropertyValue $userauthprocdetails0 -PassThru |
-                Add-Member -NotePropertyName AuthenticationProcessingDetails1 -NotePropertyValue $userauthprocdetails1 -PassThru 
+                Add-Member -NotePropertyName AuthenticationProcessingDetails1 -NotePropertyValue $userauthprocdetails1 -PassThru |
+                Add-Member -NotePropertyName authenticationRequirement -NotePropertyValue $SIILog.authenticationRequirement -PassThru
                 
             }
             write-host "TLS Login for user " $useritem.userprincipalname 
@@ -92,6 +93,7 @@ if($checkSPNlegacylogins.count -ge 1)
                     Add-Member -NotePropertyName AppDisplayName -NotePropertyValue $SIWILog.appdisplayname -PassThru |
                     Add-Member -NotePropertyName AppId -NotePropertyValue $SIWILog.Appid -PassThru |
                     Add-Member -NotePropertyName IPAddress -NotePropertyValue $SIWILog.IPAddress -PassThru |
+                    Add-Member -NotePropertyName isInteractive -NotePropertyValue $SIWILog.isInteractive -PassThru |
                     Add-Member -NotePropertyName ResourceDisplayName -NotePropertyValue $SIWILog.ResourceDisplayName -PassThru |
                     Add-Member -NotePropertyName ResourceId -NotePropertyValue $SIWILog.ResourceId -PassThru |
                     Add-Member -NotePropertyName ResourceServicePrincipal -NotePropertyValue $SIWILog.ResourceServicePrincipalId -PassThru |
@@ -99,7 +101,8 @@ if($checkSPNlegacylogins.count -ge 1)
                     Add-Member -NotePropertyName ServicePrincipalId -NotePropertyValue $SIWILog.ServicePrincipalId -PassThru |
                     Add-Member -NotePropertyName AuthenticationProcessingDetails0 -NotePropertyValue $authprocdetails0 -PassThru |
                     Add-Member -NotePropertyName AuthenticationProcessingDetails1 -NotePropertyValue $authprocdetails1 -PassThru |
-                    Add-Member -NotePropertyName isInteractive -NotePropertyValue $SIWILog.isInteractive -PassThru 
+                    Add-Member -NotePropertyName authenticationRequirement -NotePropertyValue $SIWILog.authenticationRequirement -PassThru
+                    
                     
                 }
                 write-host "found legacy login for SPN/app " $SPNItem.AppDisplayName

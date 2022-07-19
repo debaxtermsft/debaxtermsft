@@ -1,4 +1,4 @@
-$tId = "7b69d5f1-a08a-4802-9c12-794ca524d88d"  # Add tenant ID from Azure Active Directory page on portal.
+$tId = "yourtenantid"  # Add tenant ID from Azure Active Directory page on portal.
 $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
 $agoDays = 4  # Will filter the log for $agoDays from the current date and time.
 $startDate = (Get-Date).AddDays(-($agoDays)).ToString('yyyy-MM-dd')  # Get filter start date.

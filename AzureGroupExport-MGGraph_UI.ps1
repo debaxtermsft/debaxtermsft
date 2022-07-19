@@ -18,7 +18,7 @@
 #save file function window
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") 
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 
-function file-saver([string] $initialDirectory, $filename)
+function select-directory([string] $initialDirectory, $filename)
     {
         $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
         $outputfile = $filename + $tdy +".csv"
@@ -141,7 +141,7 @@ function select-group ($grouptype, $selectType, $groupselect, $multivalue)
 #remove the rem below and enter the tenant id, and rem the 2nd connect-azaccount
 try
     {
-    Get-MGDomain -ErrorAction Stop > $null
+    Get-MGUser -top 1 -ErrorAction Stop > $null
     }
 catch
     {
@@ -161,16 +161,17 @@ do
     $MainMenuQuestion  =@()
     $GroupTypeQuestion =@()
     $SorOQuestion      =@() 
-    $mainmenu        = @("Group Members","Groups Attributes")
+    $mainmenu        = @("Group Members","Groups Attributes", "Group Owners", "Group License Assignments")
     $GroupTypeFilter = @("All","Assigned","Dynamic")
 
     $MainMenuQuestion  =  select-group -grouptype $mainmenu -selectType "Select Group Export Option"
     if ($MainMenuQuestion -eq "Cancel"){break}
-    $GroupTypeQuestion =  select-group -grouptype $GroupTypeFilter -selectType "Select Group Type"
-    if ($GroupTypeQuestion-eq "Cancel"){break}
+
     
     if($MainMenuQuestion -eq "Group Members")
         {
+            $GroupTypeQuestion =  select-group -grouptype $GroupTypeFilter -selectType "Select Group Type"
+            if ($GroupTypeQuestion-eq "Cancel"){break}
             if($GroupTypeQuestion -eq "Assigned" )
             {
                 $SorOGroup       = @("All","Azure Security", "Office Security", "Selected Azure Security","Selected Office Security", "Selected Office Non-Security")
@@ -394,10 +395,108 @@ do
         #creating header for CSV
         
         $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion
-        $OutputFile = file-saver -filename $file -initialDirectory $env:HOMEDRIVE
+        $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
         if ($OutputFile -eq "Cancel"){break}
         $GMs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
     }
+    elseif($MainMenuQuestion.toupper()-eq "GROUP LICENSE ASSIGNMENTS")
+    {
+        $GroupTypeQuestion =  select-group -grouptype $GroupTypeFilter -selectType "Select Group Type"
+        if ($GroupTypeQuestion-eq "Cancel"){break}
+        
+        if($GroupTypeQuestion -eq "Assigned" )
+        {
+
+        }
+        elseif($GroupTypeQuestion -eq "Dynamic" )
+        {
+
+        }
+        else # must be all
+        {
+            
+        }
+        
+        $buildURI = "https://graph.microsoft.com/v1.0/groups/" + 
+        $assignedlicenses = invoke-mggraphrequest -uri 'https://graph.microsoft.com/v1.0/groups/35d7166f-eeab-4c33-8882-9ac7617671ff?$select=assignedLicenses' -method GET
+    }
+    elseif($MainMenuQuestion.ToUpper() -eq "GROUP OWNERS") #  Group attributes ($MainMenuQuestion -eq "Group Attributes") #used to backup all information about a group needed to recreate assigned group, especially dynamic security groups w rule
+    {
+        $GOs =@()
+        if($GroupTypeQuestion.toupper()-eq "DYNAMIC")
+        {
+                $group = get-mggroup -all $true |
+                where-object{$_.grouptypes -contains "DynamicMembership"}|
+                select-object displayname, id |
+                Sort-Object DisplayName
+                $findgroupowners =@()
+                foreach($grouplisted in $group)
+                {
+                    $findgroupowners = Get-MgGroupOwner -GroupId $grouplisted.id 
+                    if($findgroupowners.count -ne 0)
+                    {
+                        foreach($foundowner in $findgroupowners)
+                        {
+                            $GOs += New-Object Object |
+                            Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $grouplisted.DisplayName -PassThru |
+                            Add-Member -NotePropertyName Group_ID -NotePropertyValue $grouplisted.id -PassThru |
+                            Add-Member -NotePropertyName Owner_ID -NotePropertyValue $foundowner.Id -PassThru 
+                        }
+                    }
+                }
+
+        }
+        elseif($GroupTypeQuestion.toupper()-eq "ASSIGNED")
+        {
+                $group = get-mggroup -all $true |
+                where-object{$_.grouptypes -notcontains "DynamicMembership"}|
+                select-object displayname,id |
+                Sort-Object DisplayName
+                $findgroupowners =@()
+                foreach($grouplisted in $group)
+                {
+                    $findgroupowners = Get-MgGroupOwner -GroupId $grouplisted.id 
+                    if($findgroupowners.count -ne 0)
+                    {
+                        foreach($foundowner in $findgroupowners)
+                        {
+                            $GOs += New-Object Object |
+                            Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $grouplisted.DisplayName -PassThru |
+                            Add-Member -NotePropertyName Group_ID -NotePropertyValue $grouplisted.id -PassThru |
+                            Add-Member -NotePropertyName Owner_ID -NotePropertyValue $foundowner.Id -PassThru 
+                        }
+                    }
+                }
+        }
+
+        else # condition for all Group Attributes, all a&d and all s/o
+        { 
+            $group = get-mggroup -all | Sort-Object DisplayName
+            $findgroupowners =@()
+            foreach($grouplisted in $group)
+            {
+                $findgroupowners = Get-MgGroupOwner -GroupId $grouplisted.id 
+                if($findgroupowners.count -ne 0)
+                {
+                    foreach($foundowner in $findgroupowners)
+                    {
+                        $GOs += New-Object Object |
+                        Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $grouplisted.DisplayName -PassThru |
+                        Add-Member -NotePropertyName Group_ID -NotePropertyValue $grouplisted.id -PassThru |
+                        Add-Member -NotePropertyName Owner_ID -NotePropertyValue $foundowner.Id -PassThru 
+                    }
+                }
+            }
+        }
+
+        
+        #creating header for CSV
+        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion
+        $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
+        if ($OutputFile -eq "Cancel"){break}
+        $GOs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
+    }
+
     else #  Group attributes ($MainMenuQuestion -eq "Group Attributes") #used to backup all information about a group needed to recreate assigned group, especially dynamic security groups w rule
     {
         if($GroupTypeQuestion.toupper()-eq "DYNAMIC")
@@ -447,15 +546,15 @@ do
                                     Add-Member -NotePropertyName Mail -NotePropertyValue $item.Mail -PassThru |
                                     Add-Member -NotePropertyName mailnickname -NotePropertyValue $item.mailnickname -PassThru |
                                     Add-Member -NotePropertyName AssignedLabels -NotePropertyValue $labels -PassThru |
-                                    Add-Member -NotePropertyName MembershipRule -NotePropertyValue $item.MembershipRule -PassThru | 
-                                    Add-Member -NotePropertyName GroupOwner -NotePropertyValue $groupowner.id -PassThru 
+                                    Add-Member -NotePropertyName MembershipRule -NotePropertyValue $item.MembershipRule -PassThru 
+
                     } 
                 
             } 
         
         #creating header for CSV
         $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion
-        $OutputFile = file-saver -filename $file -initialDirectory $env:HOMEDRIVE
+        $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
         if ($OutputFile -eq "Cancel"){break}
         $GAs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
     }

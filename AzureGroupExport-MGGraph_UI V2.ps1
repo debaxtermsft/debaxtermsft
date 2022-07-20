@@ -4,6 +4,7 @@
 
  5/13/22
  debaxter@microsoft.com
+ Updated with licenses 7/20/22
  complete rewrite from Az UI version
  Group Members/Group Attributes
  Group Members and Group Attributes filter1- All/Assigned/Dynamic

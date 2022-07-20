@@ -1,18 +1,20 @@
 #######################
-# Written by Derrick Baxter debaxter@microsoft.com
-# the below script uses the Azure Graph powershell module pulling all roleassignments for groups
-#
-# 5/13/22
-# debaxter@microsoft.com
-# complete rewrite from Az UI version
-# Group Members/Group Attributes
-# Group Members and Group Attributes filter1- All/Assigned/Dynamic
-# Group Members - All (gets all group members of all Groups)
-# Group Members - Assigned Filters - All(assigned)/Azure Security/Office Security/Selected Azure Security/Selected Office Security/Selected Office Non-Security
-# Group Members - Dynamic Filter - All(dynamic)/Azure/Office/Selected Azure/Selected Office
-# Group Attributes - All (all groups)/Assigned (All assigned group attributes)/ Dynamic (all Dynamic Group Attributes)
-#Using Powershell AzureADPreview version 2.0.138.0
+<# Written by Derrick Baxter debaxter@microsoft.com
+ the below script uses the Azure Graph powershell module pulling all roleassignments for groups
 
+ 5/13/22
+ debaxter@microsoft.com
+ complete rewrite from Az UI version
+ Group Members/Group Attributes
+ Group Members and Group Attributes filter1- All/Assigned/Dynamic
+ Group Members - All (gets all group members of all Groups)
+ Group Members - Assigned Filters - All(assigned)/Azure Security/Office Security/Selected Azure Security/Selected Office Security/Selected Office Non-Security
+ Group Members - Dynamic Filter - All(dynamic)/Azure/Office/Selected Azure/Selected Office
+ Group Attributes - All (all groups)/Assigned (All assigned group attributes)/ Dynamic (all Dynamic Group Attributes)
+ Group Licenses - All (gets all groups with licenses)
+ Group Licenses - Selected (select the groups with licenses assigned to export)
+Using Powershell AzureADPreview version 2.0.138.0
+#>
 #######################
 
 #save file function window

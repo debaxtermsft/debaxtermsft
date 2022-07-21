@@ -5,6 +5,7 @@
  5/13/22
  debaxter@microsoft.com
  Updated with licenses 7/20/22
+ Updated with Conditional Access Policy Export 7/21/22
  complete rewrite from Az UI version
  Group Members/Group Attributes
  Group Members and Group Attributes filter1- All/Assigned/Dynamic
@@ -164,470 +165,770 @@ do
     $MainMenuQuestion  =@()
     $GroupTypeQuestion =@()
     $SorOQuestion      =@() 
-    $mainmenu        = @("Groups Attributes","Group Members", "Group Owners", "Group Licenses")
+    $mainmenu        = @("Groups Attributes","Group Members", "Group Owners", "Group Licenses", "Groups in Conditional Access Policies")
 
 
     $MainMenuQuestion  =  select-group -grouptype $mainmenu -selectType "Select Group Export Option"
 
     switch -regex ($MainMenuQuestion) 
     {
-        "Cancel" {Exit}
+        "Cancel" {exit}
+        "Groups in Conditional Access Policies"
+        {
+            $GroupTypeFilter = "All"
+        }
         "Group Licenses" 
         {
             $GroupTypeFilter = @("All","Selected Groups with Licenses")
+            $GroupTypeQuestion =  select-group -grouptype $GroupTypeFilter -selectType "Select Group Type"
+            if ($GroupTypeQuestion-eq "Cancel"){exit}
         }
         default
         {
             $GroupTypeFilter = @("All","Assigned","Dynamic")    
+            $GroupTypeQuestion =  select-group -grouptype $GroupTypeFilter -selectType "Select Group Type"
+            if ($GroupTypeQuestion-eq "Cancel"){exit}
         }
     }
   
-    $GroupTypeQuestion =  select-group -grouptype $GroupTypeFilter -selectType "Select Group Type"
-    if ($GroupTypeQuestion-eq "Cancel"){break}
+
 
     switch -regex ($MainMenuQuestion) 
     {
         "Cancel" {Exit}
-        "Group Members" 
+        "Groups in Conditional Access Policies"
         {
-            if($GroupTypeQuestion -eq "Assigned" )
+            $CAs = Invoke-MgGraphRequest -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies' -method get
+            $cavalue = $cas.'value'
+            $CAGroupobject  = @()
+            If ($CAExluce1.count -ge 1 -or !$CAInclude1.count -ge 1)
             {
-                $SorOGroup       = @("All","Azure Security", "Office Security", "Selected Azure Security","Selected Office Security", "Selected Office Non-Security")
-            }
-            elseif($GroupTypeQuestion -eq "Dynamic" )
-            {
-                $SorOGroup       = @("All","Azure","Office", "Selected Azure", "Selected Office")
+                foreach($CAitem in $cavalue)
+                {
+                    $CAName = $CAItem.displayName
+                    $CAInclude1 = $CAItem.conditions.users.includeGroups
+                    $CAExclude1 = $CAItem.conditions.users.excludeGroups
+                    foreach($CAIncludeitem in $CAinclude1)
+                    {
+                        $CAIncludeGroupname = Get-MgGroup -GroupId $CAIncludeitem
+                        $CAGroupobject += New-Object Object |
+                        Add-Member -NotePropertyName CAName -NotePropertyValue $CAName -PassThru |
+                        Add-Member -NotePropertyName CAIncludedGroups -NotePropertyValue $CAIncludeitem -PassThru |
+                        Add-Member -NotePropertyName CAIncludedGroupsName -NotePropertyValue $CAIncludeGroupname.DisplayName -PassThru |
+                        Add-Member -NotePropertyName CAExcludedGroups -NotePropertyValue $null -PassThru |
+                        Add-Member -NotePropertyName CAExcludedGroupsName -NotePropertyValue $null -PassThru 
+                    }
+                    foreach ($CAExcludeitem in $CAExclude1)
+                    {
+                        $CAexcludeGroupname = Get-MgGroup -GroupId $CAexcludeitem
+                        $CAGroupobject += New-Object Object |
+                        Add-Member -NotePropertyName CAName -NotePropertyValue $CAName -PassThru |
+                        Add-Member -NotePropertyName CAIncludedGroups -NotePropertyValue $null -PassThru |
+                        Add-Member -NotePropertyName CAIncludedGroupsName -NotePropertyValue $null -PassThru |
+                        Add-Member -NotePropertyName CAExcludedGroups -NotePropertyValue $CAExcludeitem -PassThru |
+                        Add-Member -NotePropertyName CAExcludedGroupsName -NotePropertyValue $CAexcludeGroupname.DisplayName -PassThru 
+                    }
+
+                }
+                $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion +"_"
+                $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
+                if ($OutputFile -eq "Cancel"){exit}
+                $CAGroupobject | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
             }
 
+
+        }
+        "Group Members" 
+        {
+            switch -regex ($GroupTypeQuestion) 
+            {
+                "Cancel" {exit}
+                "Assigned"
+                {
+                    $SorOGroup       = @("All","Azure Security", "Office Security", "Selected Azure Security","Selected Office Security", "Selected Office Non-Security")
+                    $SorOQuestion     =  select-group -grouptype $SorOGroup -selectType "Select Filter Option"
+                    switch -regex ($SorOQuestion) 
+                    {
+                        "Cancel" {exit}
+                        "Azure Security"
+                        {
+                            $group = get-mggroup -all  | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                                select-object displayname, id, description | 
+                                Sort-Object DisplayName
+                        }
+                        "Office Security"
+                        {
+                            $group = get-mggroup -all | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
+                                select-object displayname, id, description | 
+                                Sort-Object DisplayName
+                        }
+                        "Selected Azure Security"
+                        {
+                            $groupselect = (get-mggroup -all  | 
+                                where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -notcontains "Unified"  -and $_.securityenabled -eq $true) }| 
+                                Sort-Object DisplayName).DisplayName
+                            $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED AZURE SECURITY Groups filter"  -multivalue $true
+                            foreach ($item3 in $groupquestion)
+                            {
+                                [string]$gname = $item3
+                                $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                                $group += $findgroup 
+                                
+                            }
+                        }
+                        "Selected Office Security"
+                        {
+                            $groupselect = (get-mggroup -all  | 
+                                where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
+                                Sort-Object DisplayName).DisplayName
+                            $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE SECURITY Groups filter"  -multivalue $true
+                        
+                            foreach ($item3 in $groupquestion)
+                            {
+                                [string]$gname = $item3
+                                $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                                $group += $findgroup 
+                                
+                            }
+    
+                        }
+                        "Selected Office Non-Security"
+                        {
+                            $group = get-mggroup -all  | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $false) }| 
+                                select-object displayname, id, description | 
+                                Sort-Object DisplayName
+                        }
+                        "All"
+                        {
+                            $group = get-mggroup -all | 
+                                where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership") }| 
+                                Sort-Object DisplayName
+                        }
+                    }
+
+                }
+                "Dynamic"
+                {
+                    $SorOGroup       = @("All","Azure","Office", "Selected Azure", "Selected Office")
+                    $SorOQuestion     =  select-group -grouptype $SorOGroup -selectType "Select Filter Option"
+                    switch -regex ($SorOQuestion) 
+                    {
+                        "Cancel" {exit}
+                        "Azure"
+                        {
+                            $group = get-mggroup -all | 
+                            Where-Object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                            Select-Object displayname, id, description | 
+                            Sort-Object DisplayName
+                        }
+                        "Office"
+                        {
+                            $group = get-mggroup -all | 
+                            where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified"-and $_.securityenabled -eq $true) }| 
+                            select-object displayname, id, description | 
+                            Sort-Object DisplayName
+                        }
+                        "Selected Azure"
+                        {
+                            $groupselect = (get-mggroup -all | 
+                            where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                            Sort-Object DisplayName).DisplayName
+                            $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
+                            foreach ($item3 in $groupquestion)
+                            {
+                                [string]$gname = $item3
+                                $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                                $group += $findgroup 
+        
+                            }
+                        }
+                        "Selected Office"
+                        {
+                            $groupselect = (get-mggroup -all | 
+                            where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
+                            Sort-Object DisplayName).DisplayName
+                            $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
+                            foreach ($item3 in $groupquestion)
+                            {
+                                [string]$gname = $item3
+                                $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                                $group += $findgroup 
+                                
+                            }
+                        }
+                        "All"
+                        {
+                            $group = get-mggroup -all | 
+                            select-object displayname, id, description | 
+                                Sort-Object DisplayName
+                        }
+                }
+                }
+            }
+            foreach ($item in $group)
+            {
+                $findgroupmembers = get-mggroupmember -GroupId $item.id 
+                if($findgroupmembers -ne 0) 
+                {
+
+
+                    foreach ($groupmember1 in $findgroupmembers)
+                    {
+                        $zero = $groupmember1.additionalproperties.values[0]
+                        #$zero
+                        if ($zero -match "graph.group")
+                        {
+                            $groupinfo = get-mggroup -GroupId $groupmember1.Id
+                                    $GMs += New-Object Object |
+                                        Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                        Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupinfo.displayName -PassThru |
+                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupinfo.id -PassThru |
+                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Group" -PassThru
+                        }
+                
+                        elseif ($zero -match "graph.user")
+                        {
+                            $groupuser = get-mguser -UserId $groupmember1.Id
+                                    $GMs += New-Object Object |
+                                            Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                            Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberUserPrincipalName -NotePropertyValue $groupuser.UserPrincipalName -PassThru |
+                                            Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "User" -PassThru
+                        }
+                        elseif ($zero -match "graph.device")
+                        {
+                        $devid = $groupmember1.Id
+                            $groupuser = get-mgdevice -Filter "Id eq '$devid'" 
+                                    $GMs += New-Object Object |
+                                            Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                            Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
+                                            Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.id -PassThru |
+                                            Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Device" -PassThru
+                        }
+                        else
+                        {
+                            $groupuser = Get-MgServicePrincipal -ServicePrincipalId $groupmember1.id
+                                    $GMs += New-Object Object |
+                                            Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                            Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
+                                            Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Appid -PassThru |
+                                            Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "ServicePrincipal" -PassThru
+                
+                        }
+                    }
+                }        
+            }
+        
+        #creating header for CSV
+        
+        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion +"_"
+        $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
+        if ($OutputFile -eq "Cancel"){exit}
+        $GMs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
+        }
+            
+
+<#
             if($MainMenuQuestion -eq "Group Members" -and $GroupTypeQuestion -ne "All")
             {
                 $SorOQuestion     =  select-group -grouptype $SorOGroup -selectType "Select Filter Option"
-                if ($SorOQuestion -eq "Cancel"){break}
+                if ($SorOQuestion -eq "Cancel"){exit}
             }
             
-                    if($GroupTypeQuestion.toupper()-eq "DYNAMIC") #all dynamic group members
-        {
-            if($SorOQuestion.ToUpper()-eq "AZURE")
+            if($GroupTypeQuestion.toupper()-eq "DYNAMIC") #all dynamic group members
             {
-                $group = get-mggroup -all | 
-                    Where-Object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
-                    Select-Object displayname, id, description | 
-                    Sort-Object DisplayName
-            }
-            elseif($SorOQuestion.ToUpper()-eq "OFFICE")
-            {
-                $group = get-mggroup -all | 
-                    where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified"-and $_.securityenabled -eq $true) }| 
-                    select-object displayname, id, description | 
-                    Sort-Object DisplayName
-            }
-            elseif($SorOQuestion.ToUpper() -eq "SELECTED AZURE")
-            {
-                $groupselect = (get-mggroup -all | 
-                    where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
-                    Sort-Object DisplayName).DisplayName
-                $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
-                foreach ($item3 in $groupquestion)
+                if($SorOQuestion.ToUpper()-eq "AZURE")
                 {
-                    [string]$gname = $item3
-                    $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                    $group += $findgroup 
-
+                    $group = get-mggroup -all | 
+                        Where-Object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                        Select-Object displayname, id, description | 
+                        Sort-Object DisplayName
                 }
-            }
-            elseif($SorOQuestion.ToUpper() -eq "SELECTED OFFICE")
-            {
-                $groupselect = (get-mggroup -all | 
-                    where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
-                    Sort-Object DisplayName).DisplayName
-                $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
-                foreach ($item3 in $groupquestion)
+                elseif($SorOQuestion.ToUpper()-eq "OFFICE")
                 {
-                    [string]$gname = $item3
-                    $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                    $group += $findgroup 
-                    
-                }
-            }
-            else
-            {
-            $group = get-mggroup -all | 
-               select-object displayname, id, description | 
-                Sort-Object DisplayName
-            }
-        }
-        elseif($GroupTypeQuestion.toupper() -eq "ASSIGNED") #all assigned group members
-        {
-            if($SorOQuestion.ToUpper() -eq "AZURE SECURITY")
-            {
-                $group = get-mggroup -all  | 
-                    where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
-                   select-object displayname, id, description | 
-                    Sort-Object DisplayName
-            }
-            elseif($SorOQuestion.ToUpper()-eq "OFFICE SECURITY")
-            {
-                $group = get-mggroup -all | 
-                    where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
-                   select-object displayname, id, description | 
-                    Sort-Object DisplayName
-            }
-            elseif($SorOQuestion.ToUpper()-eq "OFFICE NON-SECURITY")
-            {
-                $group = get-mggroup -all  | 
-                    where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $false) }| 
-                   select-object displayname, id, description | 
-                    Sort-Object DisplayName
-            }
-            elseif($SorOQuestion.ToUpper()-eq "SELECTED AZURE SECURITY")
-            {
-                $groupselect = (get-mggroup -all  | 
-                    where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -notcontains "Unified"  -and $_.securityenabled -eq $true) }| 
-                    Sort-Object DisplayName).DisplayName
-                $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED AZURE SECURITY Groups filter"  -multivalue $true
-                
-                foreach ($item3 in $groupquestion)
-                {
-                    [string]$gname = $item3
-                    $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                    $group += $findgroup 
-                    
-                }
-
-            }
-            elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE SECURITY")
-            {
-                $groupselect = (get-mggroup -all  | 
-                    where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
-                    Sort-Object DisplayName).DisplayName
-                $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE SECURITY Groups filter"  -multivalue $true
-                
-                foreach ($item3 in $groupquestion)
-                {
-                    [string]$gname = $item3
-                    $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                    $group += $findgroup 
-                    
-                }
-
-            }
-            elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE NON-SECURITY")
-            {
-                $groupselect = (get-mggroup -all  | 
-                    where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
-                    Sort-Object DisplayName).DisplayName
-                $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE NON-SECURITY filter"  -multivalue $true
-                
-                foreach ($item3 in $groupquestion)
-                {
-                    [string]$gname = $item3
-                    $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                    $group += $findgroup 
-                    
-                }
-
-            }
-            else
-            {
-                $group = get-mggroup -all | 
-                    where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership") }| 
-                    Sort-Object DisplayName
-             }
-
-             if($GroupTypeQuestion.toupper()-eq "DYNAMIC") #all dynamic group members
-             {
-                 if($SorOQuestion.ToUpper()-eq "AZURE")
-                 {
-                     $group = get-mggroup -all | 
-                         Where-Object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
-                         Select-Object displayname, id, description | 
-                         Sort-Object DisplayName
-                 }
-                 elseif($SorOQuestion.ToUpper()-eq "OFFICE")
-                 {
-                     $group = get-mggroup -all | 
-                         where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified"-and $_.securityenabled -eq $true) }| 
-                         select-object displayname, id, description | 
-                         Sort-Object DisplayName
-                 }
-                 elseif($SorOQuestion.ToUpper() -eq "SELECTED AZURE")
-                 {
-                     $groupselect = (get-mggroup -all | 
-                         where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
-                         Sort-Object DisplayName).DisplayName
-                     $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
-                     foreach ($item3 in $groupquestion)
-                     {
-                         [string]$gname = $item3
-                         $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                         $group += $findgroup 
-     
-                     }
-                 }
-                 elseif($SorOQuestion.ToUpper() -eq "SELECTED OFFICE")
-                 {
-                     $groupselect = (get-mggroup -all | 
-                         where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
-                         Sort-Object DisplayName).DisplayName
-                     $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
-                     foreach ($item3 in $groupquestion)
-                     {
-                         [string]$gname = $item3
-                         $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                         $group += $findgroup 
-                         
-                     }
-                 }
-                 else
-                 {
-                 $group = get-mggroup -all | 
-                    select-object displayname, id, description | 
-                     Sort-Object DisplayName
-                 }
-             }
-             elseif($GroupTypeQuestion.toupper() -eq "ASSIGNED") #all assigned group members
-             {
-                 if($SorOQuestion.ToUpper() -eq "AZURE SECURITY")
-                 {
-                     $group = get-mggroup -all  | 
-                         where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                    $group = get-mggroup -all | 
+                        where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified"-and $_.securityenabled -eq $true) }| 
                         select-object displayname, id, description | 
-                         Sort-Object DisplayName
-                 }
-                 elseif($SorOQuestion.ToUpper()-eq "OFFICE SECURITY")
-                 {
-                     $group = get-mggroup -all | 
-                         where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
-                        select-object displayname, id, description | 
-                         Sort-Object DisplayName
-                 }
-                 elseif($SorOQuestion.ToUpper()-eq "OFFICE NON-SECURITY")
-                 {
-                     $group = get-mggroup -all  | 
-                         where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $false) }| 
-                        select-object displayname, id, description | 
-                         Sort-Object DisplayName
-                 }
-                 elseif($SorOQuestion.ToUpper()-eq "SELECTED AZURE SECURITY")
-                 {
-                     $groupselect = (get-mggroup -all  | 
-                         where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -notcontains "Unified"  -and $_.securityenabled -eq $true) }| 
-                         Sort-Object DisplayName).DisplayName
-                     $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED AZURE SECURITY Groups filter"  -multivalue $true
-                     
-                     foreach ($item3 in $groupquestion)
-                     {
-                         [string]$gname = $item3
-                         $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                         $group += $findgroup 
-                         
-                     }
-     
-                 }
-                 elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE SECURITY")
-                 {
-                     $groupselect = (get-mggroup -all  | 
-                         where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
-                         Sort-Object DisplayName).DisplayName
-                     $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE SECURITY Groups filter"  -multivalue $true
-                     
-                     foreach ($item3 in $groupquestion)
-                     {
-                         [string]$gname = $item3
-                         $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                         $group += $findgroup 
-                         
-                     }
-     
-                 }
-                 elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE NON-SECURITY")
-                 {
-                     $groupselect = (get-mggroup -all  | 
-                         where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
-                         Sort-Object DisplayName).DisplayName
-                     $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE NON-SECURITY filter"  -multivalue $true
-                     
-                     foreach ($item3 in $groupquestion)
-                     {
-                         [string]$gname = $item3
-                         $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
-                         $group += $findgroup 
-                         
-                     }
-     
-                 }
-                 else
-                 {
-                     $group = get-mggroup -all | 
-                         where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership") }| 
-                         Sort-Object DisplayName
-                  }
-     
-             }
-             else # must be All group members
-             {
-                     $group = get-mggroup -all  | 
-                     #$group = get-mggroup -top 10 |
-                        select-object displayname, id, description | 
-                         Sort-Object DisplayName
-             }
-     
-                 foreach ($item in $group)
-                 {
-                     $findgroupmembers = get-mggroupmember -GroupId $item.id 
-                     if($findgroupmembers -ne 0) 
-                     {
-     
-     
-                         foreach ($groupmember1 in $findgroupmembers)
-                         {
-                             $zero = $groupmember1.additionalproperties.values[0]
-                             #$zero
-                             if ($zero -match "graph.group")
-                             {
-                                 $groupinfo = get-mggroup -GroupId $groupmember1.Id
-                                         $GMs += New-Object Object |
-                                             Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                             Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
-                                             Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                             Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupinfo.displayName -PassThru |
-                                             Add-Member -NotePropertyName MemberID -NotePropertyValue $groupinfo.id -PassThru |
-                                             Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Group" -PassThru
-                             }
-                     
-                             elseif ($zero -match "graph.user")
-                             {
-                                 $groupuser = get-mguser -UserId $groupmember1.Id
-                                         $GMs += New-Object Object |
-                                                 Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                                 Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
-                                                 Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                                 Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.DisplayName -PassThru |
-                                                 Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Id -PassThru |
-                                                 Add-Member -NotePropertyName MemberUserPrincipalName -NotePropertyValue $groupuser.UserPrincipalName -PassThru |
-                                                 Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "User" -PassThru
-                             }
-                             elseif ($zero -match "graph.device")
-                             {
-                             $devid = $groupmember1.Id
-                                 $groupuser = get-mgdevice -Filter "Id eq '$devid'" 
-                                         $GMs += New-Object Object |
-                                                 Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                                 Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
-                                                 Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                                 Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
-                                                 Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.id -PassThru |
-                                                 Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Device" -PassThru
-                             }
-                             else
-                             {
-                                 $groupuser = Get-MgServicePrincipal -ServicePrincipalId $groupmember1.id
-                                         $GMs += New-Object Object |
-                                                 Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                                 Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
-                                                 Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                                 Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
-                                                 Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Appid -PassThru |
-                                                 Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "ServicePrincipal" -PassThru
-                     
-                             }
-                         }
-                     }        
-                 }
-              
-             #creating header for CSV
-             
-             $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion
-             $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
-             if ($OutputFile -eq "Cancel"){break}
-             $GMs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
-
-        }
-        else # must be All group members
-        {
-                $group = get-mggroup -all  | 
-                #$group = get-mggroup -top 10 |
-                   select-object displayname, id, description | 
-                    Sort-Object DisplayName
-        }
-
-        foreach ($item in $group)
-        {
-            $findgroupmembers = get-mggroupmember -GroupId $item.id 
-            if($findgroupmembers -ne 0) 
-            {
-
-
-                foreach ($groupmember1 in $findgroupmembers)
+                        Sort-Object DisplayName
+                }
+                elseif($SorOQuestion.ToUpper() -eq "SELECTED AZURE")
                 {
-                    $zero = $groupmember1.additionalproperties.values[0]
-                    #$zero
-                    if ($zero -match "graph.group")
+                    $groupselect = (get-mggroup -all | 
+                        where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                        Sort-Object DisplayName).DisplayName
+                    $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
+                    foreach ($item3 in $groupquestion)
                     {
-                        $groupinfo = get-mggroup -GroupId $groupmember1.Id
-                                $GMs += New-Object Object |
-                                    Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                    Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
-                                    Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                    Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupinfo.displayName -PassThru |
-                                    Add-Member -NotePropertyName MemberID -NotePropertyValue $groupinfo.id -PassThru |
-                                    Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Group" -PassThru
+                        [string]$gname = $item3
+                        $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                        $group += $findgroup 
+
                     }
-            
-                    elseif ($zero -match "graph.user")
+                }
+                elseif($SorOQuestion.ToUpper() -eq "SELECTED OFFICE")
+                {
+                    $groupselect = (get-mggroup -all | 
+                        where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
+                        Sort-Object DisplayName).DisplayName
+                    $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
+                    foreach ($item3 in $groupquestion)
                     {
-                        $groupuser = get-mguser -UserId $groupmember1.Id
-                                $GMs += New-Object Object |
-                                        Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
-                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberUserPrincipalName -NotePropertyValue $groupuser.UserPrincipalName -PassThru |
-                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "User" -PassThru
+                        [string]$gname = $item3
+                        $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                        $group += $findgroup 
+                        
                     }
-                    elseif ($zero -match "graph.device")
+                }
+                else
+                {
+                $group = get-mggroup -all | 
+                select-object displayname, id, description | 
+                    Sort-Object DisplayName
+                }
+            }
+
+            elseif($GroupTypeQuestion.toupper() -eq "ASSIGNED") #all assigned group members
+            {
+                if($SorOQuestion.ToUpper() -eq "AZURE SECURITY")
+                {
+                    $group = get-mggroup -all  | 
+                        where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                    select-object displayname, id, description | 
+                        Sort-Object DisplayName
+                }
+                elseif($SorOQuestion.ToUpper()-eq "OFFICE SECURITY")
+                {
+                    $group = get-mggroup -all | 
+                        where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
+                    select-object displayname, id, description | 
+                        Sort-Object DisplayName
+                }
+                elseif($SorOQuestion.ToUpper()-eq "OFFICE NON-SECURITY")
+                {
+                    $group = get-mggroup -all  | 
+                        where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $false) }| 
+                    select-object displayname, id, description | 
+                        Sort-Object DisplayName
+                }
+                elseif($SorOQuestion.ToUpper()-eq "SELECTED AZURE SECURITY")
+                {
+                    $groupselect = (get-mggroup -all  | 
+                        where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -notcontains "Unified"  -and $_.securityenabled -eq $true) }| 
+                        Sort-Object DisplayName).DisplayName
+                    $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED AZURE SECURITY Groups filter"  -multivalue $true
+                    
+                    foreach ($item3 in $groupquestion)
                     {
-                    $devid = $groupmember1.Id
-                        $groupuser = get-mgdevice -Filter "Id eq '$devid'" 
-                                $GMs += New-Object Object |
-                                        Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
-                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
-                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.id -PassThru |
-                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Device" -PassThru
+                        [string]$gname = $item3
+                        $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                        $group += $findgroup 
+                        
+                    }
+
+                }
+                elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE SECURITY")
+                {
+                    $groupselect = (get-mggroup -all  | 
+                        where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
+                        Sort-Object DisplayName).DisplayName
+                    $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE SECURITY Groups filter"  -multivalue $true
+                    
+                    foreach ($item3 in $groupquestion)
+                    {
+                        [string]$gname = $item3
+                        $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                        $group += $findgroup 
+                        
+                    }
+
+                }
+                elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE NON-SECURITY")
+                {
+                    $groupselect = (get-mggroup -all  | 
+                        where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
+                        Sort-Object DisplayName).DisplayName
+                    $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE NON-SECURITY filter"  -multivalue $true
+                    
+                    foreach ($item3 in $groupquestion)
+                    {
+                        [string]$gname = $item3
+                        $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                        $group += $findgroup 
+                        
+                    }
+
+                }
+                else
+                {
+                    $group = get-mggroup -all | 
+                        where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership") }| 
+                        Sort-Object DisplayName
+                }
+
+                if($GroupTypeQuestion.toupper()-eq "DYNAMIC") #all dynamic group members
+                {
+                    if($SorOQuestion.ToUpper()-eq "AZURE")
+                    {
+                        $group = get-mggroup -all | 
+                            Where-Object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                            Select-Object displayname, id, description | 
+                            Sort-Object DisplayName
+                    }
+                    elseif($SorOQuestion.ToUpper()-eq "OFFICE")
+                    {
+                        $group = get-mggroup -all | 
+                            where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified"-and $_.securityenabled -eq $true) }| 
+                            select-object displayname, id, description | 
+                            Sort-Object DisplayName
+                    }
+                    elseif($SorOQuestion.ToUpper() -eq "SELECTED AZURE")
+                    {
+                        $groupselect = (get-mggroup -all | 
+                            where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                            Sort-Object DisplayName).DisplayName
+                        $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
+                        foreach ($item3 in $groupquestion)
+                        {
+                            [string]$gname = $item3
+                            $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                            $group += $findgroup 
+        
+                        }
+                    }
+                    elseif($SorOQuestion.ToUpper() -eq "SELECTED OFFICE")
+                    {
+                        $groupselect = (get-mggroup -all | 
+                            where-object{($_.grouptypes -contains "DynamicMembership" -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
+                            Sort-Object DisplayName).DisplayName
+                        $groupquestion =  select-group -grouptype $groupselect -selectType "Dynamic Security Groups filter"  -multivalue $true
+                        foreach ($item3 in $groupquestion)
+                        {
+                            [string]$gname = $item3
+                            $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                            $group += $findgroup 
+                            
+                        }
                     }
                     else
                     {
-                        $groupuser = Get-MgServicePrincipal -ServicePrincipalId $groupmember1.id
-                                $GMs += New-Object Object |
+                    $group = get-mggroup -all | 
+                        select-object displayname, id, description | 
+                        Sort-Object DisplayName
+                    }
+                }
+                elseif($GroupTypeQuestion.toupper() -eq "ASSIGNED") #all assigned group members
+                {
+                    if($SorOQuestion.ToUpper() -eq "AZURE SECURITY")
+                    {
+                        $group = get-mggroup -all  | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
+                            select-object displayname, id, description | 
+                            Sort-Object DisplayName
+                    }
+                    elseif($SorOQuestion.ToUpper()-eq "OFFICE SECURITY")
+                    {
+                        $group = get-mggroup -all | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
+                            select-object displayname, id, description | 
+                            Sort-Object DisplayName
+                    }
+                    elseif($SorOQuestion.ToUpper()-eq "OFFICE NON-SECURITY")
+                    {
+                        $group = get-mggroup -all  | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $false) }| 
+                            select-object displayname, id, description | 
+                            Sort-Object DisplayName
+                    }
+                    elseif($SorOQuestion.ToUpper()-eq "SELECTED AZURE SECURITY")
+                    {
+                        $groupselect = (get-mggroup -all  | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -notcontains "Unified"  -and $_.securityenabled -eq $true) }| 
+                            Sort-Object DisplayName).DisplayName
+                        $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED AZURE SECURITY Groups filter"  -multivalue $true
+                        
+                        foreach ($item3 in $groupquestion)
+                        {
+                            [string]$gname = $item3
+                            $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                            $group += $findgroup 
+                            
+                        }
+        
+                    }
+                    elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE SECURITY")
+                    {
+                        $groupselect = (get-mggroup -all  | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
+                            Sort-Object DisplayName).DisplayName
+                        $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE SECURITY Groups filter"  -multivalue $true
+                        
+                        foreach ($item3 in $groupquestion)
+                        {
+                            [string]$gname = $item3
+                            $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                            $group += $findgroup 
+                            
+                        }
+        
+                    }
+                    elseif($SorOQuestion.ToUpper()-eq "SELECTED OFFICE NON-SECURITY")
+                    {
+                        $groupselect = (get-mggroup -all  | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
+                            Sort-Object DisplayName).DisplayName
+                        $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE NON-SECURITY filter"  -multivalue $true
+                        
+                        foreach ($item3 in $groupquestion)
+                        {
+                            [string]$gname = $item3
+                            $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                            $group += $findgroup 
+                            
+                        }
+        
+                    }
+                    else
+                    {
+                        $group = get-mggroup -all | 
+                            where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership") }| 
+                            Sort-Object DisplayName
+                    }
+        
+                }
+                else # must be All group members
+                {
+                        $group = get-mggroup -all  | 
+                        #$group = get-mggroup -top 10 |
+                            select-object displayname, id, description | 
+                            Sort-Object DisplayName
+                }
+        
+                    foreach ($item in $group)
+                    {
+                        $findgroupmembers = get-mggroupmember -GroupId $item.id 
+                        if($findgroupmembers -ne 0) 
+                        {
+        
+        
+                            foreach ($groupmember1 in $findgroupmembers)
+                            {
+                                $zero = $groupmember1.additionalproperties.values[0]
+                                #$zero
+                                if ($zero -match "graph.group")
+                                {
+                                    $groupinfo = get-mggroup -GroupId $groupmember1.Id
+                                            $GMs += New-Object Object |
+                                                Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                                Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                                Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                                Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupinfo.displayName -PassThru |
+                                                Add-Member -NotePropertyName MemberID -NotePropertyValue $groupinfo.id -PassThru |
+                                                Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Group" -PassThru
+                                }
+                        
+                                elseif ($zero -match "graph.user")
+                                {
+                                    $groupuser = get-mguser -UserId $groupmember1.Id
+                                            $GMs += New-Object Object |
+                                                    Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                                    Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                                    Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                                    Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.DisplayName -PassThru |
+                                                    Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Id -PassThru |
+                                                    Add-Member -NotePropertyName MemberUserPrincipalName -NotePropertyValue $groupuser.UserPrincipalName -PassThru |
+                                                    Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "User" -PassThru
+                                }
+                                elseif ($zero -match "graph.device")
+                                {
+                                $devid = $groupmember1.Id
+                                    $groupuser = get-mgdevice -Filter "Id eq '$devid'" 
+                                            $GMs += New-Object Object |
+                                                    Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                                    Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                                    Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                                    Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
+                                                    Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.id -PassThru |
+                                                    Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Device" -PassThru
+                                }
+                                else
+                                {
+                                    $groupuser = Get-MgServicePrincipal -ServicePrincipalId $groupmember1.id
+                                            $GMs += New-Object Object |
+                                                    Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                                    Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                                    Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                                    Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
+                                                    Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Appid -PassThru |
+                                                    Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "ServicePrincipal" -PassThru
+                        
+                                }
+                            }
+                        }        
+                    }
+                
+                #creating header for CSV
+                
+                $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion +"_"
+                $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
+                if ($OutputFile -eq "Cancel"){exit}
+                $GMs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
+
+            }
+            else # must be All group members
+            {
+                    $group = get-mggroup -all  | 
+                    #$group = get-mggroup -top 10 |
+                    select-object displayname, id, description | 
+                        Sort-Object DisplayName
+            }
+            foreach ($item in $group)
+            {
+                $findgroupmembers = get-mggroupmember -GroupId $item.id 
+                if($findgroupmembers -ne 0) 
+                {
+
+
+                    foreach ($groupmember1 in $findgroupmembers)
+                    {
+                        $zero = $groupmember1.additionalproperties.values[0]
+                        #$zero
+                        if ($zero -match "graph.group")
+                        {
+                            $groupinfo = get-mggroup -GroupId $groupmember1.Id
+                                    $GMs += New-Object Object |
                                         Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
                                         Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
                                         Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
-                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Appid -PassThru |
-                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "ServicePrincipal" -PassThru
-            
+                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupinfo.displayName -PassThru |
+                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupinfo.id -PassThru |
+                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Group" -PassThru
+                        }
+                
+                        elseif ($zero -match "graph.user")
+                        {
+                            $groupuser = get-mguser -UserId $groupmember1.Id
+                                    $GMs += New-Object Object |
+                                            Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                            Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberUserPrincipalName -NotePropertyValue $groupuser.UserPrincipalName -PassThru |
+                                            Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "User" -PassThru
+                        }
+                        elseif ($zero -match "graph.device")
+                        {
+                        $devid = $groupmember1.Id
+                            $groupuser = get-mgdevice -Filter "Id eq '$devid'" 
+                                    $GMs += New-Object Object |
+                                            Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                            Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
+                                            Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.id -PassThru |
+                                            Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Device" -PassThru
+                        }
+                        else
+                        {
+                            $groupuser = Get-MgServicePrincipal -ServicePrincipalId $groupmember1.id
+                                    $GMs += New-Object Object |
+                                            Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                            Add-Member -NotePropertyName GroupDescription -NotePropertyValue $item.Description -PassThru |
+                                            Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                            Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
+                                            Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Appid -PassThru |
+                                            Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "ServicePrincipal" -PassThru
+                
+                        }
                     }
-                }
-            }        
+                }        
+            }
+            #creating header for CSV
+            $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion +"_"
+            $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
+            if ($OutputFile -eq "Cancel"){exit}
+            $GMs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
         }
-         
-        #creating header for CSV
-        
-        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion
-        $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
-        if ($OutputFile -eq "Cancel"){break}
-        $GMs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
-
-        
-        }
+#>
         "Groups Attributes" 
         {
+            $group =@()
+            switch -regex ($GroupTypeQuestion) 
+            {
+                "Cancel" {exit}
+                "Assigned"
+                {
+                    $group = get-mggroup -all  |
+                    where-object{$_.grouptypes -contains "DynamicMembership"}|
+                        select-object displayname,description, id, securityenabled, IsAssignableToRole, proxyaddresses, GroupTypes,  MailEnabled, Mail, mailnickname,AssignedLabels, MembershipRule |
+                        Sort-Object DisplayName
+                }
+                "Dynamic"
+                {
+                    $group = get-mggroup -all |
+                    where-object{$_.grouptypes -notcontains "DynamicMembership"}|
+                        select-object displayname,description, id, securityenabled, IsAssignableToRole, proxyaddresses, GroupTypes,  MailEnabled, Mail, mailnickname,AssignedLabels, MembershipRule |
+                        Sort-Object DisplayName
+                }
+                "All"
+                {
+                    $group = get-mggroup -all | Sort-Object DisplayName 
+                }
+            }
+                if(!$group)
+                {
+                                $groupinfo2 = "No groups"
+                                $groupinfo += $groupinfo2
+                }
+                else
+                {
+                        $GAs=@()
+                        foreach ($item in $group )
+                        {
+                            [string]$proxy = $item.ProxyAddresses
+                            [string]$grouptypes = $item.grouptypes
+                            [string]$labels = $item.assignedlables
+                            $groupowner = Get-MgGroupOwner -GroupId $item.id
+                        $GAs += New-Object Object |
+                                        Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $item.DisplayName -PassThru |
+                                        Add-Member -NotePropertyName Group_Description -NotePropertyValue $item.Description -PassThru |
+                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
+                                        Add-Member -NotePropertyName securityenabled -NotePropertyValue $item.securityenabled -PassThru |
+                                        Add-Member -NotePropertyName IsAssignableToRole -NotePropertyValue $item.IsAssignableToRole -PassThru |
+                                        Add-Member -NotePropertyName proxyaddresses -NotePropertyValue $proxy -PassThru |
+                                        Add-Member -NotePropertyName GroupTypes -NotePropertyValue $grouptypes -PassThru |
+                                        Add-Member -NotePropertyName MailEnabled -NotePropertyValue $item.MailEnabled -PassThru |
+                                        Add-Member -NotePropertyName Mail -NotePropertyValue $item.Mail -PassThru |
+                                        Add-Member -NotePropertyName mailnickname -NotePropertyValue $item.mailnickname -PassThru |
+                                        Add-Member -NotePropertyName AssignedLabels -NotePropertyValue $labels -PassThru |
+                                        Add-Member -NotePropertyName MembershipRule -NotePropertyValue $item.MembershipRule -PassThru 
+    
+                        } 
+                    
+                } 
+            
+                #creating header for CSV
+                $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion +"_"
+                $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
+                if ($OutputFile -eq "Cancel"){exit}
+                $GAs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
+        }
+<#
             if($GroupTypeQuestion.toupper()-eq "DYNAMIC")
             {
-                    $group = get-mggroup -all $true |
+                    $group = get-mggroup -all  |
                     where-object{$_.grouptypes -contains "DynamicMembership"}|
                    select-object displayname,description, id, securityenabled, IsAssignableToRole, proxyaddresses, GroupTypes,  MailEnabled, Mail, mailnickname,AssignedLabels, MembershipRule |
                     Sort-Object DisplayName
@@ -635,7 +936,7 @@ do
             }
             elseif($GroupTypeQuestion.toupper()-eq "ASSIGNED")
             {
-                    $group = get-mggroup -all $true |
+                    $group = get-mggroup -all |
                     where-object{$_.grouptypes -notcontains "DynamicMembership"}|
                    select-object displayname,description, id, securityenabled, IsAssignableToRole, proxyaddresses, GroupTypes,  MailEnabled, Mail, mailnickname,AssignedLabels, MembershipRule |
                     Sort-Object DisplayName
@@ -679,24 +980,20 @@ do
             } 
         
         #creating header for CSV
-        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion
+        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion +"_"
         $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
-        if ($OutputFile -eq "Cancel"){break}
+        if ($OutputFile -eq "Cancel"){exit}
         $GAs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
-
-        }
+#>
         "Group Licenses" 
         {
             switch -regex ($GroupTypeQuestion) 
             {
-                "Cancel" {Exit}
+                "Cancel" {exit}
                 "All" 
                 {
                     $sps =get-mgsubscribedSku |  Select-Object skupartnumber , serviceplans
-                    $sps2 = $sps.serviceplans
-
                     #get only groups with license assignments 
-
                     #Graph call to get only groups with assigned licenses by calling only graph to get licenese in the tenant then checking which groups are assigned to those licenses
                     $skus = Get-MgSubscribedSku
                     $SKUinfos = @()
@@ -773,9 +1070,9 @@ do
 
                         }
                         $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
-                        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $tdy
+                        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper() +"_"
                         $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
-                        if ($OutputFile -eq "Cancel"){break}
+                        if ($OutputFile -eq "Cancel"){exit}
                         $FinalSkuobject | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
                 }
                 "Selected Groups with Licenses" 
@@ -875,9 +1172,9 @@ do
                         }
                         $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
 
-                        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $tdy
+                        $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper() +"_"
                         $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
-                        if ($OutputFile -eq "Cancel"){break}
+                        if ($OutputFile -eq "Cancel"){exit}
                         $FinalSkuobject | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
                 }
             }
@@ -885,9 +1182,77 @@ do
         "Group Owners" 
         {
             $GOs =@()
+            switch -regex ($GroupTypeQuestion) 
+            {
+                "Cancel" {exit}
+                "Assigned" 
+                {
+                    $group = get-mggroup -all |
+                    where-object{$_.grouptypes -notcontains "DynamicMembership"}|
+                    select-object displayname,id |
+                    Sort-Object DisplayName
+                    $findgroupowners =@()
+                    foreach($grouplisted in $group)
+                    {
+                        $findgroupowners = Get-MgGroupOwner -GroupId $grouplisted.id 
+                        if($findgroupowners.count -ne 0)
+                        {
+                            foreach($foundowner in $findgroupowners)
+                            {
+                                $GOs += New-Object Object |
+                                Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $grouplisted.DisplayName -PassThru |
+                                Add-Member -NotePropertyName Group_ID -NotePropertyValue $grouplisted.id -PassThru |
+                                Add-Member -NotePropertyName Owner_ID -NotePropertyValue $foundowner.Id -PassThru 
+                            }
+                        }
+                    }
+                }
+                "Dynamic"
+                {
+                    $group = get-mggroup -all  |
+                    where-object{$_.grouptypes -contains "DynamicMembership"}|
+                    select-object displayname, id |
+                    Sort-Object DisplayName
+                    $findgroupowners =@()
+                    foreach($grouplisted in $group)
+                    {
+                        $findgroupowners = Get-MgGroupOwner -GroupId $grouplisted.id 
+                        if($findgroupowners.count -ne 0)
+                        {
+                            foreach($foundowner in $findgroupowners)
+                            {
+                                $GOs += New-Object Object |
+                                Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $grouplisted.DisplayName -PassThru |
+                                Add-Member -NotePropertyName Group_ID -NotePropertyValue $grouplisted.id -PassThru |
+                                Add-Member -NotePropertyName Owner_ID -NotePropertyValue $foundowner.Id -PassThru 
+                            }
+                        }
+                    }
+                }
+                "default"
+                {
+                    $group = get-mggroup -all | Sort-Object DisplayName
+                    $findgroupowners =@()
+                    foreach($grouplisted in $group)
+                    {
+                        $findgroupowners = Get-MgGroupOwner -GroupId $grouplisted.id 
+                        if($findgroupowners.count -ne 0)
+                        {
+                            foreach($foundowner in $findgroupowners)
+                            {
+                                $GOs += New-Object Object |
+                                Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $grouplisted.DisplayName -PassThru |
+                                Add-Member -NotePropertyName Group_ID -NotePropertyValue $grouplisted.id -PassThru |
+                                Add-Member -NotePropertyName Owner_ID -NotePropertyValue $foundowner.Id -PassThru 
+                            }
+                        }
+                    }
+                }
+            }
+<#
             if($GroupTypeQuestion.toupper()-eq "DYNAMIC")
             {
-                    $group = get-mggroup -all $true |
+                    $group = get-mggroup -all  |
                     where-object{$_.grouptypes -contains "DynamicMembership"}|
                     select-object displayname, id |
                     Sort-Object DisplayName
@@ -910,7 +1275,7 @@ do
             }
             elseif($GroupTypeQuestion.toupper()-eq "ASSIGNED")
             {
-                    $group = get-mggroup -all $true |
+                    $group = get-mggroup -all |
                     where-object{$_.grouptypes -notcontains "DynamicMembership"}|
                     select-object displayname,id |
                     Sort-Object DisplayName
@@ -950,12 +1315,12 @@ do
                     }
                 }
             }
-
+#>
             
             #creating header for CSV
             $file = $MainMenuQuestion +"_"+ $GroupTypeQuestion.toupper()+"_"+ $SorOQuestion
             $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
-            if ($OutputFile -eq "Cancel"){break}
+            if ($OutputFile -eq "Cancel"){exit}
             $GOs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
         }        
     }

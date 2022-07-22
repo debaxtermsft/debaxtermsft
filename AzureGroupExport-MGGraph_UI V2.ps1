@@ -166,7 +166,7 @@ do
     $MainMenuQuestion  =@()
     $GroupTypeQuestion =@()
     $SorOQuestion      =@() 
-    $mainmenu        = @("Groups Attributes","Group Members", "Group Owners", "Group Licenses", "Groups in Conditional Access Policies")
+    $mainmenu        = @("Groups Attributes","Group Members", "Group Owners", "Group Licenses", "Groups in Conditional Access Policies", "Groups in Application")
 
 
     $MainMenuQuestion  =  select-group -grouptype $mainmenu -selectType "Select Group Export Option"
@@ -768,7 +768,33 @@ do
             $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
             if ($OutputFile -eq "Cancel"){exit}
             $GOs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
-        }        
+        }
+        "Groups in Application"        
+        {
+            $MGGROUP = get-mggroup -all  | Sort-Object DisplayName
+            $apgroup        = @()
+            $Gapps          = @()
+            foreach ($apgroup in $MGGROUP) 
+                { 
+                    $applist = get-mggroupappRoleAssignment -groupid $apgroup.id
+ 
+                    $Gapps += New-Object Object |
+                                Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $apgroup.DisplayName -PassThru |
+                                Add-Member -NotePropertyName Group_ID -NotePropertyValue $apgroup.id -PassThru |
+                                Add-Member -NotePropertyName Id -NotePropertyValue $applist.Id -PassThru |
+                                Add-Member -NotePropertyName AppRoleId -NotePropertyValue $applist.AppRoleId -PassThru |
+                                Add-Member -NotePropertyName principalpalName -NotePropertyValue $applist.PrincipalDisplayName -PassThru |
+                                Add-Member -NotePropertyName PrincipalId -NotePropertyValue $applist.PrincipalId -PassThru |
+                                Add-Member -NotePropertyName PrincipalType -NotePropertyValue $applist.PrincipalType -PassThru |
+                                Add-Member -NotePropertyName ResourceDisplayName -NotePropertyValue $applist.ResourceDisplayName -PassThru |
+                                Add-Member -NotePropertyName ResourceId -NotePropertyValue $applist.ResourceId -PassThru 
+                } 
+            #creating header for CSV
+            $file = $MainMenuQuestion +"_"
+            $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
+            if ($OutputFile -eq "Cancel"){exit}
+            $GOs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
+        }
     }
 }
 while ($MainMenuQuestion -ne "Cancel")

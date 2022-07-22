@@ -184,6 +184,10 @@ do
             $GroupTypeQuestion =  select-group -grouptype $GroupTypeFilter -selectType "Select Group Type"
             if ($GroupTypeQuestion-eq "Cancel"){exit}
         }
+        "Groups in Application"
+        {
+            $GroupTypeFilter = ""
+        }
         default
         {
             $GroupTypeFilter = @("All","Assigned","Dynamic")    
@@ -776,24 +780,28 @@ do
             $Gapps          = @()
             foreach ($apgroup in $MGGROUP) 
                 { 
-                    $applist = get-mggroupappRoleAssignment -groupid $apgroup.id
- 
-                    $Gapps += New-Object Object |
-                                Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $apgroup.DisplayName -PassThru |
-                                Add-Member -NotePropertyName Group_ID -NotePropertyValue $apgroup.id -PassThru |
-                                Add-Member -NotePropertyName Id -NotePropertyValue $applist.Id -PassThru |
-                                Add-Member -NotePropertyName AppRoleId -NotePropertyValue $applist.AppRoleId -PassThru |
-                                Add-Member -NotePropertyName principalpalName -NotePropertyValue $applist.PrincipalDisplayName -PassThru |
-                                Add-Member -NotePropertyName PrincipalId -NotePropertyValue $applist.PrincipalId -PassThru |
-                                Add-Member -NotePropertyName PrincipalType -NotePropertyValue $applist.PrincipalType -PassThru |
-                                Add-Member -NotePropertyName ResourceDisplayName -NotePropertyValue $applist.ResourceDisplayName -PassThru |
-                                Add-Member -NotePropertyName ResourceId -NotePropertyValue $applist.ResourceId -PassThru 
-                } 
+                    $applist = get-mggroupappRoleAssignment -groupid $apgroup.id |Where-Object{$_.PrincipalId -ne $null}
+                    foreach ($applistitem in $applist)
+                    {
+                        $Gapps += New-Object Object |
+                        Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $apgroup.DisplayName -PassThru |
+                        Add-Member -NotePropertyName Group_ID -NotePropertyValue $apgroup.id -PassThru |
+                        Add-Member -NotePropertyName Id -NotePropertyValue $applistitem.Id -PassThru |
+                        Add-Member -NotePropertyName AppRoleId -NotePropertyValue $applistitem.AppRoleId -PassThru |
+                        Add-Member -NotePropertyName PrincipalDisplayName -NotePropertyValue $applistitem.PrincipalDisplayName -PassThru |
+                        Add-Member -NotePropertyName PrincipalId -NotePropertyValue $applistitem.PrincipalId -PassThru |
+                        Add-Member -NotePropertyName PrincipalType -NotePropertyValue $applistitem.PrincipalType -PassThru |
+                        Add-Member -NotePropertyName ResourceDisplayName -NotePropertyValue $applistitem.ResourceDisplayName -PassThru |
+                        Add-Member -NotePropertyName ResourceId -NotePropertyValue $applistitem.ResourceId -PassThru    
+                    }
+                }
+                
+            #$gapps2 = $gapps | where-object{$_.ResourceDisplayName -ne $null}
             #creating header for CSV
             $file = $MainMenuQuestion +"_"
             $OutputFile = select-directory -filename $file -initialDirectory $env:HOMEDRIVE
             if ($OutputFile -eq "Cancel"){exit}
-            $GOs | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
+            $gapps | export-csv -Path $OutputFile -NoTypeInformation -Force -Encoding UTF8
         }
     }
 }

@@ -150,7 +150,8 @@ try
     }
 catch
     {
-    Connect-MgGraph -Scopes "group.read.all, directory.read.all, group.readwrite.all, groupmember.read.all, groupmember.readwrite.all"
+    Connect-MgGraph -Scopes "group.read.all, directory.read.all, group.readwrite.all, groupmember.read.all, groupmember.readwrite.all, Policy.Read.All, 
+    Application.Read.All,Policy.ReadWrite.ConditionalAccess"
     Select-MgProfile -Name "beta"
     }
 

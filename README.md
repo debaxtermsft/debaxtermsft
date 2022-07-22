@@ -60,17 +60,36 @@ used for companies to backup their group memberships (assigned or dynamic)/(secu
 
 along with the ability to backup the attributes for rebuilding the groups
 
-Group Members/Group Attributes
+Group Attributes – Group Attributes needed to rebuild an Assigned or Dynamic Group (w Rule), mailnickname, security, isassignable (to aad role)
+Group Attributes - All (all groups)
+Group Attributes – Assigned (All assigned group attributes)
+Group Attributes - Dynamic (all Dynamic Group Attributes)
 
-Group Members and Group Attributes filter1- All/Assigned/Dynamic
+Group Members – Exports all Groups Group Members and Group Name
+Group Members – Select All (exports all groups members for all group in the currently signed into tenant)
+Group Members - Assigned - All(exports all assigned group members)
+Group Members – Assigned - Azure Security (only All exports Assigned Azure Security Group Members)
+Group Members – Assigned - Office Security (exports All Assigned Unified/Office Security Group Members)
+Group Members – Assigned -Selected Azure Security (Lets you select which Assigned Azure Security Group to export Members)
+Group Members – Assigned -Selected Office Security (Lets you select which Assigned Office/Unified Security Group to export Members)
+Group Members – Assigned -Selected Office Non-Security (Lets you select which Assigned Office/Unified Group to export Members)
+Group Members – Dynamic - Filter - All(dynamic)/Azure/Office/Selected Azure/Selected Office (although dynamic groups do not need to have members imported later, the export can help a customer determine if users that are in or should not be in the group)
+Group Members – Dynamic – All Dynamic Group Members
+Group Members – Dynamic – Azure – All Azure Dynamic Group Members
+Group Members – Dynamic – Office – All Office/Unified Dynamic Group Members
+Group Members – Dynamic – Selected Azure (lets you select which dynamic azure group to export members)
+Group Members – Dynamic – Selected Office/Unified (lets you select which dynamic office/unified group to export members)
 
-Group Members - All (gets all group members of all Groups)
+Group Owners – Gets the group(s) owner(s)
+Group Owners – All (all group owners in all groups)
+Group Owners – Selected (select the group(s) you want owner
 
-Group Members - Assigned Filters - All(assigned)/Azure Security/Office Security/Selected Azure Security/Selected Office Security/Selected Office Non-Security
+Group Licenses – Exports the Group ObjectID, Group Displayname, License SKU and SKUPartName (E5, EMS, AAD P1, etc), and disabled Plan ID and disabled plan Name (very helpful when rebuilding a group)
+Group Licenses - All (gets all groups with licenses)
+Group Licenses - Selected (Select the group(s) with Licenses to export
 
-Group Members - Dynamic Filter - All(dynamic)/Azure/Office/Selected Azure/Selected Office
-
-Group Attributes - All (all groups)/Assigned (All assigned group attributes)/ Dynamic (all Dynamic Group Attributes)
+Group Conditional Access Policies – Locates all CAs and exports the included and excluded groups (very helpful if a device security group is deleted with a CA to let users signin, use MFA, etc, which apps may be blocked/granted, etc…
+Groups in Applications – exports all application with Groups assigned
 
 CLI File will be saved for MainMenuQuestion +"_"+ $GroupTypeQuestion+"_"+ $SorOQuestion+Date and Time.csv
 

@@ -1,26 +1,34 @@
-#######################
-# Written by Derrick Baxter debaxter@microsoft.com
-# the below script uses the Graph powershell module pulling all roleassignments for groups
-#
-# debaxter
-# complete rewrite for Azure Graph
-# Group Members/Group Attributes
-# Group Members and Group Attributes filter1- All/Assigned/Dynamic
-# Group Members - All (gets all group members of all Groups)
-# Group Members - Assigned Filters - All(assigned)/Azure/Office
-# Group Members - Dynamic Filter - All(dynamic)/Azure/Office
-# Group Attributes - All (all groups)/Assigned (All assigned group attributes)/ Dynamic (all Dynamic Group Attributes)
-#Using Powershell Graph version
-#CLI Version
-# updated 5/12/22 using objects over arrays
-# Group Attribute example
-#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter All -SecurityorOfficeGroup All -Outputdirectory "c:\temp\"
-#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter Assigned -SecurityorOfficeGroup Azure -Outputdirectory "c:\temp\"
-# Group Members examples
-#  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter All -SecurityorOfficeGroup All -Outputdirectory "c:\temp\"
-# .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter Dynamic -SecurityorOfficeGroup Office -Outputdirectory "c:\temp\"
-#######################
+<#
+ Written by Derrick Baxter 
+ the below script uses the Graph powershell module pulling all roleassignments for groups
 
+debaxter
+complete rewrite for Azure Graph
+debaxter@microsoft.com
+Updated with licenses 7/20/22
+Updated with Conditional Access Policy Export 7/21/22
+complete rewrite from Az UI version
+Group Members/Group Attributes
+Group Members and Group Attributes filter1- All/Assigned/Dynamic
+Group Members - All (gets all group members of all Groups)
+Group Members - Assigned Filters - All(assigned)/Azure Security/Office Security
+Group Members - Dynamic Filter - All(dynamic)/Azure/Office
+Group Attributes - All (all groups)/Assigned (All assigned group attributes)/ Dynamic (all Dynamic Group Attributes)
+Group Licenses - All (gets all groups with licenses)
+Group Licenses - Selected (select the groups with licenses assigned to export)
+Export Conditional Access Policies with included/excluded groups
+Using Powershell microsoft.graph
+Using Powershell Graph version
+CLI Version
+ updated 5/12/22 using objects over arrays
+ Group Attribute example
+  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter All -SecurityorOfficeGroup All -Outputdirectory "c:\temp\"
+  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Members' -GroupTypeFilter Assigned -SecurityorOfficeGroup Azure -Outputdirectory "c:\temp\"
+ Group Members examples
+  .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter All -SecurityorOfficeGroup All -Outputdirectory "c:\temp\"
+ .\AzureGroupExport-MGGraph_CLI.ps1 -mainmenu 'Group Attributes' -GroupTypeFilter Dynamic -SecurityorOfficeGroup Office -Outputdirectory "c:\temp\"
+
+#> 
 
     param([parameter(mandatory)][validateset("Group Members","Groups Attributes")][string] $mainmenu,
           [parameter(mandatory)][validateset("All","Assigned","Dynamic")] [string]$GroupTypeFilter,

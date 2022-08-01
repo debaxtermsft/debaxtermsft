@@ -16,7 +16,7 @@
  Group Licenses - All (gets all groups with licenses)
  Group Licenses - Selected (select the groups with licenses assigned to export)
  Export Conditional Access Policies with included/excluded groups
-Using Powershell AzureADPreview version 2.0.138.0
+Using Powershell microsoft.graph
 #>
 #######################
 

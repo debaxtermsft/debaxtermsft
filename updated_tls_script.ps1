@@ -64,6 +64,8 @@ if ($legacy.count -ge 1)
 
     
 }
+$SIIProperties | Export-Csv -Path ($pathForExport + "Interactive_lowTls_$tId_$tdy.csv") -NoTypeInformation
+
 write-host "SINI"
 if ($legacy.count -ge 1)
 {
@@ -111,6 +113,8 @@ if ($legacy.count -ge 1)
 
     
 }
+$SINIProperties | Export-Csv -Path ($pathForExport + "NONInteractive_lowTls_$tId_$tdy.csv") -NoTypeInformation
+
 $MGserviceprincipals = @()
 $checkSPNlegacylogins = Get-MgAuditLogSignIn -all -Filter "createdDateTime ge $startDate and signInEventTypes/any(t: t eq 'servicePrincipal')" | 
 sort-object CreatedDateTime  | 
@@ -158,7 +162,5 @@ if($checkSPNlegacylogins.count -ge 1)
       #  Start-Sleep 1
     }
 }
-$SIIProperties | Export-Csv -Path ($pathForExport + "Interactive_lowTls_$tId_$tdy.csv") -NoTypeInformation
-$SINIProperties | Export-Csv -Path ($pathForExport + "NONInteractive_lowTls_$tId_$tdy.csv") -NoTypeInformation
 $SIWIProperties  | Export-Csv -Path ($pathForExport + "WorkloadIdentities_lowTls_$tId_$tdy.csv") -NoTypeInformation
 

@@ -370,6 +370,12 @@ do
                         }
                 }
                 }
+                "All"
+                {
+                    $group = get-mggroup -all  | 
+                       select-object displayname, id, description | 
+                        Sort-Object DisplayName
+                }
             }
             foreach ($item in $group)
             {
@@ -748,7 +754,7 @@ do
                         }
                     }
                 }
-                "default"
+                "All"
                 {
                     $group = get-mggroup -all | Sort-Object DisplayName
                     $findgroupowners =@()

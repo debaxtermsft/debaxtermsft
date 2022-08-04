@@ -128,7 +128,7 @@ write-host "SIWI"
             )
             $SIWIfilter = $clauses[0,1,2] -join " and "
 
-            $signInsWorkloadIdentities =  Get-AzureADAuditSignInLogs -All $true -filter $SIWIfilter | ?{$_.AuthenticationProcessingDetails.key -match "Legacy"} 
+            $signInsWorkloadIdentities =  Get-AzureADAuditSignInLogs -All $true -filter $SIWIfilter | ?{$_.AuthenticationProcessingDetails.key -match "Legacy"} | Sort-Object appdisplayname -Unique
             write-host "Found Legacy TLS login for SPN/app " $SPNItem.AppDisplayName
             foreach ($SIWILog in $signInsWorkloadIdentities)
                 {

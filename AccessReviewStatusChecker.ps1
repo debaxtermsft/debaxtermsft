@@ -1,4 +1,8 @@
-connect-mggraph -Scopes "AccessReview.Read.All, AccessReview.ReadWrite.All, AccessReview.ReadWrite.Membership"
+<#
+Created 8/11/22 by Derrick Baxter
+Powershell script written to export all Azure access review w status information
+#>
+connect-mggraph -Scopes "AccessReview.Read.All"
 Select-MgProfile "beta"
 
 $definitionURI = "https://graph.microsoft.com/beta/identityGovernance/accessReviews/definitions"
@@ -54,3 +58,4 @@ foreach ($ARIDfounditem in $ARIDs)
 }
 
 $ARDefIDProperties | sort-object -Property status, displayname | export-csv -Path "./accessreviewstatus.csv" -NoTypeInformation
+

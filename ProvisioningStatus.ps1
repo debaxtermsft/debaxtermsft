@@ -9,7 +9,7 @@ user objectid and name
 
 This uses microsoft.graph module for powershell
 
-You will be able to select the SKU Name to review
+You will be able to select the SKU Name to review 
 You can then select/multiselect the users having license issues
 it will then save the user license info and license state info
 

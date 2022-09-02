@@ -13,10 +13,10 @@
 #
 #
 # By OU level to pull all users under an OU
-# PS C:\temp\.\adconnectpermssions.ps1 -dn “OU=corp,DC=domain,DC=local” -outputfile “c:\temp\aclspermissions”
+# PS C:\temp\adcpermissionsv2.ps1 -dn “OU=corp,DC=domain,DC=local” -objecttype User -outputfile “c:\temp\aclspermissions.csv” -adcserviceprincipal "MSOL"
 #
 # Searching on a user to see if they have the correct permissions 
-# PS C:\temp\.\adconnectpermssions.ps1 -dn “CN=Morty Smith,OU=users, OU=Sales,OU=corp,DC=domain,DC=local” -outputfile “c:\temp\aclspermissions”
+# PS C:\temp\adcpermissionsv2.ps1 -dn “CN=Morty Smith,OU=users, OU=Sales,OU=corp,DC=domain,DC=local” -objecttype User -outputfile “c:\temp\mortysmithaclspermissions.csv” -adcserviceprincipal "MSOL"
 #
 
 

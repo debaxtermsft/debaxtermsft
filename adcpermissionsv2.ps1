@@ -6,18 +6,19 @@
 # Change Password, Reset Password, pwdLastSet, and lockoutTime have been set for the MSOL Service.
 # run on a server with RSATs AD Directory Module for Windows Powershell installed
 #
-#
-# Parameters
-# -dn "distinguishedname"
-# -outputfile "file.csv" or "c:\temp\file.csv"
-#
-#
-# By OU level to pull all users under an OU
-# PS C:\temp\adcpermissionsv2.ps1 -dn “OU=corp,DC=domain,DC=local” -objecttype User -outputfile “c:\temp\aclspermissions.csv” -adcserviceprincipal "MSOL"
-#
-# Searching on a user to see if they have the correct permissions 
-# PS C:\temp\adcpermissionsv2.ps1 -dn “CN=Morty Smith,OU=users, OU=Sales,OU=corp,DC=domain,DC=local” -objecttype User -outputfile “c:\temp\mortysmithaclspermissions.csv” -adcserviceprincipal "MSOL"
-#
+<#
+ Parameters
+ -dn "distinguishedname"
+ -objecttype User
+ -outputfile "file.csv" or "c:\temp\file.csv"
+ -adcserviceprincipal "MSOL" (or the Name of your service principal if MSOL default is not used)
+
+ By OU level to pull all users under an OU
+ PS C:\temp\adcpermissionsv2.ps1 -dn “OU=corp,DC=domain,DC=local” -objecttype User -outputfile “c:\temp\aclspermissions.csv” -adcserviceprincipal "MSOL"
+
+ Searching on a user to see if they have the correct permissions 
+ PS C:\temp\adcpermissionsv2.ps1 -dn “CN=Morty Smith,OU=users, OU=Sales,OU=corp,DC=domain,DC=local” -objecttype User -outputfile “c:\temp\mortysmithaclspermissions.csv” -adcserviceprincipal "MSOL"
+#>
 
 
 param([parameter(mandatory)][string]$dn,

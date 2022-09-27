@@ -3,6 +3,11 @@ Written by Derrick Baxter 9.27.2022
 Used to export DNS Records to a backup CSV file
 to recreate any lost records follow the document below
 https://learn.microsoft.com/en-us/powershell/module/dnsserver/add-dnsserverresourcerecord?view=windowsserver2022-ps
+
+from command line: All
+".\aadds dns records export.ps1" -AADDS yourdomain.com -DCIPAddress 10.1.1.4 -recordtype All -OutputFile ALLDNS.csv
+Just host A records
+".\aadds dns records export.ps1" -AADDS aadds.twdsavior18.com -DCIPAddress 10.1.1.4 -recordtype 'Host Records' -OutputFile DNS.csv
 #>
 
 param([parameter(mandatory)][string] $AADDS,

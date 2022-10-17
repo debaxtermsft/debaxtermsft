@@ -150,8 +150,7 @@ try
     }
 catch
     {
-    Connect-MgGraph -Scopes "group.read.all, directory.read.all, group.readwrite.all, groupmember.read.all, groupmember.readwrite.all, Policy.Read.All, 
-    Application.Read.All,Policy.ReadWrite.ConditionalAccess"
+    Connect-MgGraph -Scopes "group.read.all, directory.read.all, groupmember.read.all, Policy.Read.ConditionalAccess, Application.Read.All"
     Select-MgProfile -Name "beta"
     }
 
@@ -172,7 +171,7 @@ do
 
     $MainMenuQuestion  =  select-group -grouptype $mainmenu -selectType "Select Group Export Option"
 
-    switch -regex ($MainMenuQuestion) 
+    switch -exact ($MainMenuQuestion) 
     {
         "Cancel" {exit}
         "Groups in Conditional Access Policies"
@@ -196,7 +195,7 @@ do
             if ($GroupTypeQuestion-eq "Cancel"){exit}
         }
     }
-    switch -regex ($MainMenuQuestion) 
+    switch -exact ($MainMenuQuestion) 
     {
         "Cancel" {Exit}
         "Groups in Conditional Access Policies"
@@ -243,18 +242,20 @@ do
         }
         "Group Members" 
         {
-            switch -regex ($GroupTypeQuestion) 
+            switch -exact ($GroupTypeQuestion) 
             {
                 "Cancel" {exit}
                 "Assigned"
                 {
+                    write-host " assigned "
                     $SorOGroup       = @("All","Azure Security", "Office Security", "Selected Azure Security","Selected Office Security", "Selected Office Non-Security")
                     $SorOQuestion     =  select-group -grouptype $SorOGroup -selectType "Select Filter Option"
-                    switch -regex ($SorOQuestion) 
+                    switch -exact ($SorOQuestion) 
                     {
                         "Cancel" {exit}
                         "Azure Security"
                         {
+                            write-host " assigned / security"
                             $group = get-mggroup -all  | 
                             where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -notcontains "Unified" -and $_.securityenabled -eq $true) }| 
                                 select-object displayname, id, description | 
@@ -262,6 +263,7 @@ do
                         }
                         "Office Security"
                         {
+                            write-host " assigned / office security"
                             $group = get-mggroup -all | 
                             where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $true) }| 
                                 select-object displayname, id, description | 
@@ -269,6 +271,7 @@ do
                         }
                         "Selected Azure Security"
                         {
+                            write-host " assigned / selected azure security"
                             $groupselect = (get-mggroup -all  | 
                                 where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -notcontains "Unified"  -and $_.securityenabled -eq $true) }| 
                                 Sort-Object DisplayName).DisplayName
@@ -283,6 +286,7 @@ do
                         }
                         "Selected Office Security"
                         {
+                            write-host " assigned / selected office security"
                             $groupselect = (get-mggroup -all  | 
                                 where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"   -and $_.grouptypes -contains "Unified"  -and $_.securityenabled -eq $true) }| 
                                 Sort-Object DisplayName).DisplayName
@@ -299,10 +303,19 @@ do
                         }
                         "Selected Office Non-Security"
                         {
+                            write-host " assigned / selected office nonsecurity"
                             $group = get-mggroup -all  | 
                             where-object{($_.GroupTypes.Count -eq 0 -or $_.grouptypes -notcontains "DynamicMembership"  -and $_.grouptypes -contains "Unified" -and $_.securityenabled -eq $false) }| 
                                 select-object displayname, id, description | 
                                 Sort-Object DisplayName
+                            $groupquestion =  select-group -grouptype $groupselect -selectType "SELECTED OFFICE SECURITY Groups filter"  -multivalue $true
+                            foreach ($item3 in $groupquestion)
+                            {
+                                [string]$gname = $item3
+                                $findgroup = get-mggroup -filter "DisplayName eq '$gname'"
+                                $group += $findgroup 
+                                
+                            }
                         }
                         "All"
                         {
@@ -317,7 +330,7 @@ do
                 {
                     $SorOGroup       = @("All","Azure","Office", "Selected Azure", "Selected Office")
                     $SorOQuestion     =  select-group -grouptype $SorOGroup -selectType "Select Filter Option"
-                    switch -regex ($SorOQuestion) 
+                    switch -exact ($SorOQuestion) 
                     {
                         "Cancel" {exit}
                         "Azure"
@@ -450,7 +463,7 @@ do
         "Groups Attributes" 
         {
             $group =@()
-            switch -regex ($GroupTypeQuestion) 
+            switch -exact ($GroupTypeQuestion) 
             {
                 "Cancel" {exit}
                 "Assigned"
@@ -512,7 +525,7 @@ do
         }
         "Group Licenses" 
         {
-            switch -regex ($GroupTypeQuestion) 
+            switch -exact ($GroupTypeQuestion) 
             {
                 "Cancel" {exit}
                 "All" 
@@ -707,7 +720,7 @@ do
         "Group Owners" 
         {
             $GOs =@()
-            switch -regex ($GroupTypeQuestion) 
+            switch -exact ($GroupTypeQuestion) 
             {
                 "Cancel" {exit}
                 "Assigned" 

@@ -17,6 +17,33 @@
  Group Licenses - Selected (select the groups with licenses assigned to export)
  Export Conditional Access Policies with included/excluded groups
 Using Powershell microsoft.graph
+
+
+IMPORTANT!!!
+
+To consent for users to run this script a global admin will need to run the following
+-------------------------------------------------------------------------------------------
+$sp = get-mgserviceprincipal | ?{$_.displayname -like "Microsoft Graph Powershell*"}
+$resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
+$principalid = "c132e210-651e-42c2-95ce-864769046200"
+$scope1 ="group.read.all"
+$scope2 ="directory.read.all"
+$scope3 ="groupmember.read.all"
+$scope4 ="Policy.Read.ConditionalAccess"
+$scope5 ="Application.Read.All"
+
+$params = @{
+    ClientId = $SP.Id
+    ConsentType = "Principal"
+    ResourceId = $resource.id
+    principalId = $principalid
+    Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3"+ " " + "$scope4"+ " " + "$scope5"
+}
+
+$InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
+-------------------------------------------------------------------------------------------
+
+
 #>
 #######################
 

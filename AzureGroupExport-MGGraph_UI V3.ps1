@@ -177,7 +177,7 @@ try
     }
 catch
     {
-    Connect-MgGraph -Scopes "group.read.all, directory.read.all, groupmember.read.all, Policy.Read.ConditionalAccess, Application.Read.All"
+    Connect-MgGraph -Scopes "group.read.all, directory.read.all, groupmember.read.all, Policy.Read.All, Application.Read.All"
     Select-MgProfile -Name "beta"
     }
 

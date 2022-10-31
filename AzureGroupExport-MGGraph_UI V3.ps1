@@ -181,6 +181,7 @@ catch
     Select-MgProfile -Name "beta"
     }
 
+    
 do
 {
     $groupquestion =@()

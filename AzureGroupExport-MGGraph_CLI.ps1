@@ -30,12 +30,19 @@ CLI Version
 
 #> 
 
-    param([parameter(mandatory)][validateset("Group Members","Groups Attributes")][string] $mainmenu,
+    <#param([parameter(mandatory)][validateset("Groups Attributes","Group Members","Group Owners", "Group Licenses", "Groups in Conditional Access Policies", "Groups in Application")][string] $mainmenu,
           [parameter(mandatory)][validateset("All","Assigned","Dynamic")] [string]$GroupTypeFilter,
           [parameter(mandatory)][validateset("All","Azure","Office")] [string]$SecurityofOfficeGroup,
-          [parameter(mandatory)] [string]$Outputdirectory)
+          [parameter(mandatory)] [string]$Outputdirectory) #>
 
 
+    param([parameter(Position=0,mandatory)][validateset("All","Group ObjectID")] [string]$GroupOption,
+          [parameter(Position=1,mandatory=$false)][string]$GroupObjectID,
+          [parameter(Position=2,mandatory)][validateset("Groups Attributes","Group Members","Group Owners", "Group Licenses", "Groups in Conditional Access Policies", "Groups in Application")][string] $exporttype,
+          [parameter(Position=3,mandatory)][validateset("All","Assigned","Dynamic")] [string]$GroupTypeFilter,
+          [parameter(Position=4,mandatory)][validateset("All","Azure","Office")] [string]$SecurityofOfficeGroup,
+          [parameter(Position=5,mandatory)] [string]$Outputdirectory)
+#" group1, group2, group3"
 #remove the rem below and enter the tenant id, and rem the 2nd connect-azaccount
 try
     {
@@ -43,7 +50,7 @@ try
     }
 catch
     {
-    Connect-MgGraph -Scopes "group.read.all, directory.read.all, group.readwrite.all, groupmember.read.all, groupmember.readwrite.all"
+    Connect-MgGraph -Scopes "group.read.all, directory.read.all,groupmember.read.all"
     Select-MgProfile -Name "beta"
     }
 
@@ -77,6 +84,7 @@ catch
             $group = get-mggroup -all | 
                 Select-Object displayname, id, description | 
                 Sort-Object DisplayName
+                start-sleep 6
             }
         }
         elseif($GroupTypeFilter -eq "Assigned") #all assigned group members
@@ -104,7 +112,7 @@ catch
              }
 
         }
-        else # must be All group members
+        else # must be All group members of dynamic and office "Unified"
         {
                 $group = get-MGgroup -all  | 
                     Select-Object displayname, id, description | 
@@ -112,10 +120,10 @@ catch
         }
     
         $zero =@()
-        foreach ($thing in $group)
+        foreach ($groupitem in $group)
         {
         
-            $mggroup = Get-MgGroupMember -GroupId  $thing.id
+            $mggroup = Get-MgGroupMember -GroupId  $groupitem.id
             if($mggroup.Count -ne 0) 
             {
                 foreach ($groupmember1 in $mggroup)
@@ -126,47 +134,47 @@ catch
                     {
                         $groupinfo = get-mggroup -GroupId $groupmember1.Id
                                 $GMs += New-Object Object |
-                                    Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $thing.DisplayName -PassThru |
-                                    Add-Member -NotePropertyName GroupDescription -NotePropertyValue $thing.Description -PassThru |
-                                    Add-Member -NotePropertyName GroupID -NotePropertyValue $thing.Id -PassThru |
-                                    Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupinfo.displayName -PassThru |
-                                    Add-Member -NotePropertyName MemberID -NotePropertyValue $groupinfo.id -PassThru |
-                                    Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Group" -PassThru
+                                    Add-Member -NotePropertyName GroupDisplayName   -NotePropertyValue $groupitem.DisplayName   -PassThru |
+                                    Add-Member -NotePropertyName GroupDescription   -NotePropertyValue $groupitem.Description   -PassThru |
+                                    Add-Member -NotePropertyName GroupID            -NotePropertyValue $groupitem.Id            -PassThru |
+                                    Add-Member -NotePropertyName MemberDisplayName  -NotePropertyValue $groupinfo.displayName   -PassThru |
+                                    Add-Member -NotePropertyName MemberID           -NotePropertyValue $groupinfo.id            -PassThru |
+                                    Add-Member -NotePropertyName MemberObjectType   -NotePropertyValue "Group"                  -PassThru
                     }
         
                     elseif ($zero -match "graph.user")
                     {
                         $groupuser = get-mguser -UserId $groupmember1.Id
                                 $GMs += New-Object Object |
-                                        Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $thing.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName GroupDescription -NotePropertyValue $thing.Description -PassThru |
-                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $thing.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "User" -PassThru
+                                        Add-Member -NotePropertyName GroupDisplayName   -NotePropertyValue $groupitem.DisplayName   -PassThru |
+                                        Add-Member -NotePropertyName GroupDescription   -NotePropertyValue $groupitem.Description   -PassThru |
+                                        Add-Member -NotePropertyName GroupID            -NotePropertyValue $groupitem.Id            -PassThru |
+                                        Add-Member -NotePropertyName MemberDisplayName  -NotePropertyValue $groupuser.DisplayName   -PassThru |
+                                        Add-Member -NotePropertyName MemberID           -NotePropertyValue $groupuser.Id            -PassThru |
+                                        Add-Member -NotePropertyName MemberObjectType   -NotePropertyValue "User"                   -PassThru
                     }
                     elseif ($zero -match "graph.device")
                     {
                     $devid = $groupmember1.Id
                         $groupuser = get-mgdevice -Filter "Id eq '$devid'" 
                                 $GMs += New-Object Object |
-                                        Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $thing.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName GroupDescription -NotePropertyValue $thing.Description -PassThru |
-                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $thing.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
-                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.id -PassThru |
-                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "Device" -PassThru
+                                        Add-Member -NotePropertyName GroupDisplayName   -NotePropertyValue $groupitem.DisplayName   -PassThru |
+                                        Add-Member -NotePropertyName GroupDescription   -NotePropertyValue $groupitem.Description   -PassThru |
+                                        Add-Member -NotePropertyName GroupID            -NotePropertyValue $groupitem.Id            -PassThru |
+                                        Add-Member -NotePropertyName MemberDisplayName  -NotePropertyValue $groupuser.displayName   -PassThru |
+                                        Add-Member -NotePropertyName MemberID           -NotePropertyValue $groupuser.id            -PassThru |
+                                        Add-Member -NotePropertyName MemberObjectType   -NotePropertyValue "Device"                 -PassThru
                     }
                     else
                     {
                         $groupuser = Get-MgServicePrincipal -ServicePrincipalId $groupmember1.id
                                 $GMs += New-Object Object |
-                                        Add-Member -NotePropertyName GroupDisplayName -NotePropertyValue $thing.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName GroupDescription -NotePropertyValue $thing.Description -PassThru |
-                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $thing.Id -PassThru |
-                                        Add-Member -NotePropertyName MemberDisplayName -NotePropertyValue $groupuser.displayName -PassThru |
-                                        Add-Member -NotePropertyName MemberID -NotePropertyValue $groupuser.Appid -PassThru |
-                                        Add-Member -NotePropertyName MemberObjectType -NotePropertyValue "ServicePrincipal" -PassThru
+                                        Add-Member -NotePropertyName GroupDisplayName   -NotePropertyValue $groupitem.DisplayName   -PassThru |
+                                        Add-Member -NotePropertyName GroupDescription   -NotePropertyValue $groupitem.Description   -PassThru |
+                                        Add-Member -NotePropertyName GroupID            -NotePropertyValue $groupitem.Id            -PassThru |
+                                        Add-Member -NotePropertyName MemberDisplayName  -NotePropertyValue $groupuser.displayName   -PassThru |
+                                        Add-Member -NotePropertyName MemberID           -NotePropertyValue $groupuser.Appid         -PassThru |
+                                        Add-Member -NotePropertyName MemberObjectType   -NotePropertyValue "ServicePrincipal"       -PassThru
         
                     }
                 }
@@ -215,19 +223,19 @@ catch
                            [string]$labels = $item.assignedlables
                            $groupowner = Get-MgGroupOwner -GroupId $item.id
                         $GAs += New-Object Object |
-                                        Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $item.DisplayName -PassThru |
-                                        Add-Member -NotePropertyName Group_Description -NotePropertyValue $item.Description -PassThru |
-                                        Add-Member -NotePropertyName GroupID -NotePropertyValue $item.Id -PassThru |
-                                        Add-Member -NotePropertyName securityenabled -NotePropertyValue $item.securityenabled -PassThru |
+                                        Add-Member -NotePropertyName Group_DisplayName  -NotePropertyValue $item.DisplayName        -PassThru |
+                                        Add-Member -NotePropertyName Group_Description  -NotePropertyValue $item.Description        -PassThru |
+                                        Add-Member -NotePropertyName GroupID            -NotePropertyValue $item.Id                 -PassThru |
+                                        Add-Member -NotePropertyName securityenabled    -NotePropertyValue $item.securityenabled    -PassThru |
                                         Add-Member -NotePropertyName IsAssignableToRole -NotePropertyValue $item.IsAssignableToRole -PassThru |
-                                        Add-Member -NotePropertyName proxyaddresses -NotePropertyValue $proxy -PassThru |
-                                        Add-Member -NotePropertyName GroupTypes -NotePropertyValue $grouptypes -PassThru |
-                                        Add-Member -NotePropertyName MailEnabled -NotePropertyValue $item.MailEnabled -PassThru |
-                                        Add-Member -NotePropertyName Mail -NotePropertyValue $item.Mail -PassThru |
-                                        Add-Member -NotePropertyName mailnickname -NotePropertyValue $item.mailnickname -PassThru |
-                                        Add-Member -NotePropertyName AssignedLabels -NotePropertyValue $labels -PassThru |
-                                        Add-Member -NotePropertyName MembershipRule -NotePropertyValue $item.MembershipRule -PassThru | 
-                                        Add-Member -NotePropertyName GroupOwner -NotePropertyValue $groupowner.id -PassThru 
+                                        Add-Member -NotePropertyName proxyaddresses     -NotePropertyValue $proxy                   -PassThru |
+                                        Add-Member -NotePropertyName GroupTypes         -NotePropertyValue $grouptypes              -PassThru |
+                                        Add-Member -NotePropertyName MailEnabled        -NotePropertyValue $item.MailEnabled        -PassThru |
+                                        Add-Member -NotePropertyName Mail               -NotePropertyValue $item.Mail               -PassThru |
+                                        Add-Member -NotePropertyName mailnickname       -NotePropertyValue $item.mailnickname       -PassThru |
+                                        Add-Member -NotePropertyName AssignedLabels     -NotePropertyValue $labels                  -PassThru |
+                                        Add-Member -NotePropertyName MembershipRule     -NotePropertyValue $item.MembershipRule     -PassThru | 
+                                        Add-Member -NotePropertyName GroupOwner         -NotePropertyValue $groupowner.id           -PassThru 
                         }            
 
         $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"

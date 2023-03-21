@@ -4,6 +4,7 @@
 
  5/13/22
  debaxter@microsoft.com
+ updated : fixed error/variable 
  Updated with licenses 7/20/22
  Updated with Conditional Access Policy Export 7/21/22
  complete rewrite from Az UI version
@@ -237,7 +238,7 @@ do
             $CAs = Invoke-MgGraphRequest -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies' -method get
             $cavalue = $cas.'value'
             $CAGroupobject  = @()
-            If ($CAExluce1.count -ge 1 -or !$CAInclude1.count -ge 1)
+            If ($CAExclude1.count -ge 1 -or !$CAInclude1.count -ge 1)
             {
                 foreach($CAitem in $cavalue)
                 {

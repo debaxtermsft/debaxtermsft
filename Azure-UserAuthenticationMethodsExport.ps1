@@ -28,6 +28,8 @@ $params = @{
 $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
 
 
+You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
+
 #>
 
 connect-mggraph -scope "directory.read.all,UserAuthenticationMethod.Read.All, user.read.all"

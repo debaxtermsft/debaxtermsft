@@ -236,8 +236,10 @@ do
                             if ($RBACPRA1.count -gt 2000) {$setsleep -eq $true}
                             foreach ($praitem1 in $RBACPRA1)
                             {
+                                $rbacroledefinition = (Get-AzureADMSPrivilegedRoleDefinition -ProviderId AzureResources -ResourceId $praitem1.ResourceId -Id $praitem1.RoleDefinitionId).DisplayName
                                 $rbacobjectinfo1 = Get-AzureADObjectByObjectId -ObjectIds $praitem1.subjectid
                                 $rbacroles += New-Object Object |
+                                                Add-Member -NotePropertyName RoleDefinitionName     -NotePropertyValue  $rbacroledefinition -PassThru |
                                                 Add-Member -NotePropertyName ResourceDisplayName     -NotePropertyValue $rbacitem1.DisplayName -PassThru |
                                                 Add-Member -NotePropertyName ResourceType            -NotePropertyValue $rbacitem1.Type -PassThru |
                                                 Add-Member -NotePropertyName ResourceExternalID      -NotePropertyValue $rbacitem1.externalid -PassThru |

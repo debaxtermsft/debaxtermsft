@@ -116,8 +116,8 @@ while ($checkformore -ne $null)
 $findexid =@()
 if($resourcequestion -eq "All")
 {
-    $findexid = ($ResourceProperties).externalid
-    if($findexname -eq $null)
+    $findexid = $ResourceProperties
+    if($findexid -eq $null)
         {
             write-host "Resource Not Found, please check Tenant Logged Into or permissions"
             exit

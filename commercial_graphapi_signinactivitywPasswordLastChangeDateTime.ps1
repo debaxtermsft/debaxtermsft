@@ -9,9 +9,9 @@ connect-mggraph -scopes "directory.read.all, auditlog.read.all, user.read.all" -
 
 
 #by UPN
-#$ApiUrl = "https://graph.microsoft.com/v1.0/users?`$filter=startswith(userprincipalname,'derrick.baxter@saviors18twd.onmicrosoft.com')&`$select=displayName,userprincipalname,signInActivity"
+#$ApiUrl = "https://graph.microsoft.com/v1.0/users?`$filter=startswith(userprincipalname,'derrick.baxter@saviors18twd.onmicrosoft.com')&`$select=displayName,userprincipalname,signInActivity,lastPasswordChangeDateTime"
 #by date
-#$ApiUrl = "https://graph.microsoft.com/v1.0/users?`$filter=signInActivity/lastSignInDateTime le 2023-04-11T00:00:00Z&`$select=displayName,userprincipalname,signInActivity"
+#$ApiUrl = "https://graph.microsoft.com/v1.0/users?`$filter=signInActivity/lastSignInDateTime le 2023-04-11T00:00:00Z&`$select=displayName,userprincipalname,lastPasswordChangeDateTime,signInActivity"
 
 #users
 $ApiUrl = "https://graph.microsoft.com/v1.0/users?`$select=displayName,lastPasswordChangeDateTime,signInActivity"

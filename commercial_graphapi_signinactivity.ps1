@@ -41,6 +41,7 @@ do
     
     if($checkformorelogs -ne $null)
     {write-host "getting more logs"
+    start-sleep 5
     $auditlog = Invoke-MgGraphRequest -Uri $checkformorelogs -method get
     }
 }

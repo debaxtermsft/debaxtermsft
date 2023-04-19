@@ -41,8 +41,14 @@ do
     
     if($checkformorelogs -ne $null)
     {write-host "getting more logs"
-    start-sleep 5
-    $auditlog = Invoke-MgGraphRequest -Uri $checkformorelogs -method get
+    $counter++
+    if($counter = 2000)
+    {
+        $counter = 0
+        start-sleep 5
+        $auditlog = Invoke-MgGraphRequest -Uri $checkformorelogs -method get
+    }
+    
     }
 }
 while ($checkformorelogs -ne $null)

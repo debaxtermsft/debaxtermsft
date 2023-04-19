@@ -42,8 +42,15 @@ do
     $checkformorelogs = $auditlog.'@odata.nextlink'
     
     if($checkformorelogs -ne $null)
-    {write-host "getting more logs"
-    $auditlog = Invoke-MgGraphRequest -Uri $checkformorelogs -method get
+    {
+        $counter++
+        if($counter = 2000)
+        {
+            write-host "getting more logs"
+            $counter = 0
+            start-sleep 5
+            $auditlog = Invoke-MgGraphRequest -Uri $checkformorelogs -method get
+        }
     }
 }
 while ($checkformorelogs -ne $null)

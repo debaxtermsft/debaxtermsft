@@ -14,7 +14,7 @@ connect-mggraph -scopes "directory.read.all, auditlog.read.all, user.read.all" -
 #$ApiUrl = "https://graph.microsoft.com/v1.0/users?`$filter=signInActivity/lastSignInDateTime le 2023-04-11T00:00:00Z&`$select=displayName,userprincipalname,lastPasswordChangeDateTime,signInActivity"
 
 #users
-$ApiUrl = "https://graph.microsoft.com/v1.0/users?`$select=displayName,lastPasswordChangeDateTime,signInActivity"
+$ApiUrl = "https://graph.microsoft.com/v1.0/users?`$select=displayName,lastPasswordChangeDateTime,signInActivity,userprincipalname"
 
 $SigninLogProperties =@()
 $auditlog = Invoke-MgGraphRequest -Uri $ApiUrl -method get

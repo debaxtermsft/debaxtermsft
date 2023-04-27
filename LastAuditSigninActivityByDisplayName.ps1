@@ -1,7 +1,7 @@
 <# 
 Written by Derrick Baxter
 4/19/2023
-Retieves by graphapi the last signin audit logs by Display Name for ALL USERS and will take a long time.
+Retrieves by graphapi the last signin audit logs by Display Name for ALL USERS and will take a long time.
 pick the signin activity below (unrem) and run
 Update the $outputfile location from c:\temp\name as wanted - date and .csv are automatically added to avoid overwritting 
 #>

@@ -5,7 +5,7 @@ Retrieves by graphapi the last signin audit logs
 pick the signin activity below (unrem) and run
 Update the $outputfile location from c:\temp\name as wanted - date and .csv are automatically added to avoid overwritting  
 #>
-connect-mggraph -scopes "directory.read.all, auditlog.read.all, user.read.all" -TenantId <tenantid>
+connect-mggraph -scopes "directory.read.all, auditlog.read.all, user.read.all" #-TenantId <tenantid>
 
 
 #by UPN

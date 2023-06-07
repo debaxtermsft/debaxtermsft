@@ -52,7 +52,7 @@ foreach ($useritem in $userlist)
         $value = $queryreturned.'value'
         foreach($authitem in $value)
             {
-                if($authitem.id -eq "e37fc753-ff3b-4958-9484-eaa9425c82bc" $authitem.id -or "b6332ec1-7057-4abe-9331-3d72feddfe41" $authitem.id -or "3179e48a-750b-4051-897c-87b9720928f7")
+                if($authitem.id -eq "e37fc753-ff3b-4958-9484-eaa9425c82bc" -or $authitem.id -eq "b6332ec1-7057-4abe-9331-3d72feddfe41" -or $authitem.id -eq "3179e48a-750b-4051-897c-87b9720928f7")
                 {
                     $keys = $authitem.keys
                     $values = $authitem.values
@@ -80,5 +80,8 @@ foreach ($useritem in $userlist)
     }
 
 $AuthMethodObject | Sort-Object -Property Userprincipalname, displayname | ft
+$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$outputfile = "c:\temp\signinactivity_"+$tdy+".csv"
+$AuthMethodObject | export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
 
-$AuthMethodObject | export-csv -Path "c:\temp\userauthmethods5-4-23.csv" -Encoding utf8 -NoTypeInformation
+

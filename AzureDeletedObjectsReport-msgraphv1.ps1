@@ -29,6 +29,11 @@ $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
 
 You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
 
+If you need to perm delete any items you can use these exports to import into a powershell script or manually per item to delete using graph
+https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-1.0&tabs=powershell#example
+WARNING - THIS WILL PERMANENTLY DELETE THE OBJECT
+Import-Module Microsoft.Graph.Identity.DirectoryManagement
+Remove-MgDirectoryDeletedItem -DirectoryObjectId $directoryObjectId
 #>
 
 try

@@ -2,6 +2,9 @@
 Written By Derrick Baxter debaxter@microsoft.com
 The below script uses the Azure Graph powershell module pulling all deleted objects (users/groups/spns/apps/devices)
 
+.\AzureDeletedObjectsReport-msgraphv1.ps1
+You will need to update the directory $outputdirectory = "C:\Temp\"
+
 written: 7/18/23
 
 
@@ -30,7 +33,7 @@ $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
 You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
 
 #>
-
+$outputdirectory = "C:\Temp\"
 try
     {
     Get-MGDomain -ErrorAction Stop > $null
@@ -84,13 +87,13 @@ $Deleteddevices += New-Object Object |
                     Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
 }
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
-$outputfile = "c:\temp\deletedapps_"+$tdy+".csv"
-if($deletedapps -ne $null){$deletedapps | export-csv -path c:\temp\deletedapps.csv -notypeinformation}
-$outputfile = "c:\temp\deletedspns_"+$tdy+".csv"
-if($deletedspns -ne $null){$deletedspns | export-csv -path c:\temp\deletedspns.csv -notypeinformation}
-$outputfile = "c:\temp\deletedusers_"+$tdy+".csv"
-if($deletedusers -ne $null){$deletedusers | export-csv -path c:\temp\deletedusers.csv -notypeinformation}
-$outputfile = "c:\temp\deletedgroups_"+$tdy+".csv"
-if($deletedgroups -ne $null){$deletedgroups | export-csv -path c:\temp\deletedgroups.csv -notypeinformation}
-$outputfile = "c:\temp\deleteddevices_"+$tdy+".csv"
-if($deleteddevices -ne $null){$deleteddevices | export-csv -path c:\temp\deleteddevices.csv -notypeinformation}
+$outputfile = $outputdirectory + "deletedapps_"+$tdy+".csv"
+if($deletedapps -ne $null){$deletedapps | export-csv -path $outputfile -notypeinformation}
+$outputfile = $outputdirectory + "deletedspns_"+$tdy+".csv"
+if($deletedspns -ne $null){$deletedspns | export-csv -path $outputfile -notypeinformation}
+$outputfile = $outputdirectory + "deletedusers_"+$tdy+".csv"
+if($deletedusers -ne $null){$deletedusers | export-csv -path $outputfile -notypeinformation}
+$outputfile = $outputdirectory + "deletedgroups_"+$tdy+".csv"
+if($deletedgroups -ne $null){$deletedgroups | export-csv -path $outputfile -notypeinformation}
+$outputfile = $outputdirectory + "deleteddevices_"+$tdy+".csv"
+if($deleteddevices -ne $null){$deleteddevices | export-csv -path $outputfile -notypeinformation}

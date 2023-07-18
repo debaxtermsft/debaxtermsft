@@ -3,8 +3,18 @@ Written By Derrick Baxter debaxter@microsoft.com
 The below script uses the Azure Graph powershell module pulling all deleted objects (users/groups/spns/apps/devices)
 
 written: 7/18/23
-
-
+Users
+.\AzureDeletedObjectsReport-msgraphv1_CLI.ps1 -deletedobjectquestion Users -Outputdirectory "c:\temp\"
+Groups
+.\AzureDeletedObjectsReport-msgraphv1_CLI.ps1 -deletedobjectquestion Groups -Outputdirectory "c:\temp\"
+ServicePrincipals
+.\AzureDeletedObjectsReport-msgraphv1_CLI.ps1 -deletedobjectquestion ServicePrincipals -Outputdirectory "c:\temp\"
+Applications
+.\AzureDeletedObjectsReport-msgraphv1_CLI.ps1 -deletedobjectquestion Applications -Outputdirectory "c:\temp\"
+Devices
+.\AzureDeletedObjectsReport-msgraphv1_CLI.ps1 -deletedobjectquestion Devices -Outputdirectory "c:\temp\"
+All
+.\AzureDeletedObjectsReport-msgraphv1_CLI.ps1 -deletedobjectquestion All -Outputdirectory "c:\temp\"
 You may need to have a global admin run the below rem'ed script to consent to the user to run this script
 
 $sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}

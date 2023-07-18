@@ -207,11 +207,6 @@ $outputfile = "c:\temp\deletedgroups_"+$tdy+".csv"
 if($deletedgroups -ne $null){$deletedgroups | export-csv -path $outputfile -notypeinformation}
 $outputfile = "c:\temp\deleteddevices_"+$tdy+".csv"
 if($deleteddevices -ne $null){$deleteddevices | export-csv -path $outputfile -notypeinformation}
-
-<#write-host "Total Deleted Applications "$deletedapps.count
-write-host "Total Deleted ServicePrincipals "$deletedspns.count
-write-host "Total Deleted Users "$eletedusers.count
-write-host "Total Deleted Groups "$deletedgroups.count
-write-host "Total Deleted Devices "$deleteddevices.count#>
+#writing out total object count
 $deletedobjectcount = $deletedapps.count + $deletedspns.count + $Deletedusers.count + $deletedgroups.count + $deleteddevices.count
 write-host "Total Deleted Objects : " $deletedobjectcount

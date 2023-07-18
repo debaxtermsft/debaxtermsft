@@ -83,9 +83,14 @@ $Deleteddevices += New-Object Object |
                     Add-Member -NotePropertyName DisplayName -NotePropertyValue $item.displayname -PassThru |
                     Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
 }
-
-$deletedapps | export-csv -path c:\temp\deletedapps.csv -notypeinformation
-$deletedspns | export-csv -path c:\temp\deletedspns.csv -notypeinformation
-$deletedusers | export-csv -path c:\temp\deletedusers.csv -notypeinformation
-$deletedgroups | export-csv -path c:\temp\deletedgroups.csv -notypeinformation
-$deleteddevices | export-csv -path c:\temp\deleteddevices.csv -notypeinformation
+$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$outputfile = "c:\temp\deletedapps_"+$tdy+".csv"
+if($deletedapps -ne $null){$deletedapps | export-csv -path c:\temp\deletedapps.csv -notypeinformation}
+$outputfile = "c:\temp\deletedspns_"+$tdy+".csv"
+if($deletedspns -ne $null){$deletedspns | export-csv -path c:\temp\deletedspns.csv -notypeinformation}
+$outputfile = "c:\temp\deletedusers_"+$tdy+".csv"
+if($deletedusers -ne $null){$deletedusers | export-csv -path c:\temp\deletedusers.csv -notypeinformation}
+$outputfile = "c:\temp\deletedgroups_"+$tdy+".csv"
+if($deletedgroups -ne $null){$deletedgroups | export-csv -path c:\temp\deletedgroups.csv -notypeinformation}
+$outputfile = "c:\temp\deleteddevices_"+$tdy+".csv"
+if($deleteddevices -ne $null){$deleteddevices | export-csv -path c:\temp\deleteddevices.csv -notypeinformation}

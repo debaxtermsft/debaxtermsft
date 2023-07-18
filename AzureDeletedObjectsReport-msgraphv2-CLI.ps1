@@ -158,7 +158,7 @@ If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "Applications
                             Add-Member -NotePropertyName DisplayName -NotePropertyValue $item.displayname -PassThru |
                             Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
         }
-        write-host "Total Deleted Applications "$deletedapps.count
+        write-host "Total Deleted Applications ------: "$deletedapps.count
     }
 If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "ServicePrincipals")
     {
@@ -168,7 +168,7 @@ If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "ServicePrinc
                             Add-Member -NotePropertyName DisplayName -NotePropertyValue $item.displayname -PassThru |
                             Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
         }
-        write-host "Total Deleted ServicePrincipals "$deletedspns.count
+        "Total Deleted ServicePrincipals -: "$$deletedspns.count
     }
 If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "Users")
     {
@@ -178,7 +178,7 @@ If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "Users")
                             Add-Member -NotePropertyName DisplayName -NotePropertyValue $item.displayname -PassThru |
                             Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
         }
-        write-host "Total Deleted Users "$deletedusers.count
+        write-host "Total Deleted Users -------------: "$deletedusers.count
     }
 If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "Groups")
     {
@@ -188,7 +188,7 @@ If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "Groups")
                             Add-Member -NotePropertyName DisplayName -NotePropertyValue $item.displayname -PassThru |
                             Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
         }
-        write-host "Total Deleted Groups "$deletedgroups.count
+        write-host "Total Deleted Groups ------------: "$deletedgroups.count
     }
 If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "Devices")
     {
@@ -198,7 +198,7 @@ If($deletedobjectquestion -eq "All" -or $deletedobjectquestion -eq "Devices")
                             Add-Member -NotePropertyName DisplayName -NotePropertyValue $item.displayname -PassThru |
                             Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
         }
-        write-host "Total Deleted Devices "$deleteddevices.count
+        write-host "Total Deleted Devices -----------: "$deleteddevices.count
     }
 #>
 
@@ -215,4 +215,4 @@ $outputfile = "c:\temp\deleteddevices_"+$tdy+".csv"
 if($deleteddevices -ne $null){$deleteddevices | export-csv -path $outputfile -notypeinformation}
 #writing out total object count
 $deletedobjectcount = $deletedapps.count + $deletedspns.count + $Deletedusers.count + $deletedgroups.count + $deleteddevices.count
-write-host "Total Deleted Objects : " $deletedobjectcount
+write-host "Total Deleted Objects -----------: " $deletedobjectcount

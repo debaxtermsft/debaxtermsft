@@ -2,9 +2,6 @@
 Written By Derrick Baxter debaxter@microsoft.com
 The below script uses the Azure Graph powershell module pulling all deleted objects (users/groups/spns/apps/devices)
 
-.\AzureDeletedObjectsReport-msgraphv1.ps1
-You will need to update the directory $outputdirectory = "C:\Temp\"
-
 written: 7/18/23
 
 
@@ -12,7 +9,7 @@ You may need to have a global admin run the below rem'ed script to consent to th
 
 $sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
 $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
-$principalid = "user object id"
+$principalid = "f8b72399-336a-4851-a909-25cfaa780239"
 $scope1 ="application.read.all"
 $scope2 ="directory.read.all"
 $today = Get-Date -Format "yyyy-MM-dd"
@@ -33,7 +30,7 @@ $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
 You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
 
 #>
-$outputdirectory = "C:\Temp\"
+
 try
     {
     Get-MGDomain -ErrorAction Stop > $null
@@ -49,11 +46,11 @@ $deletedspns = @()
 $deletedusers =@()
 $deletedgroups =@()
 $deleteddevices =@()
-$apps = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.application?&'$count=true&'$orderBy=deletedDateTime+desc&'$select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-$spns = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.serviceprincipal?&'$count=true&'$orderBy=deletedDateTime+desc&'$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-$users = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.user?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-$groups = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.group?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-$devices = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.device?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
+$apps = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.application?&$count=true&$orderBy=deletedDateTime+desc&$select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
+$spns = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.serviceprincipal?&$count=true&$orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
+$users = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.user?&$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
+$groups = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.group?&$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
+$devices = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.device?&$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
 
 
 $value = $apps.value
@@ -86,14 +83,24 @@ $Deleteddevices += New-Object Object |
                     Add-Member -NotePropertyName DisplayName -NotePropertyValue $item.displayname -PassThru |
                     Add-Member -NotePropertyName ID -NotePropertyValue $item.id -PassThru 
 }
+
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
-$outputfile = $outputdirectory + "deletedapps_"+$tdy+".csv"
+$outputfile = "c:\temp\deletedapps_"+$tdy+".csv"
 if($deletedapps -ne $null){$deletedapps | export-csv -path $outputfile -notypeinformation}
-$outputfile = $outputdirectory + "deletedspns_"+$tdy+".csv"
+$outputfile = "c:\temp\deletedspns_"+$tdy+".csv"
 if($deletedspns -ne $null){$deletedspns | export-csv -path $outputfile -notypeinformation}
-$outputfile = $outputdirectory + "deletedusers_"+$tdy+".csv"
-if($deletedusers -ne $null){$deletedusers | export-csv -path $outputfile -notypeinformation}
-$outputfile = $outputdirectory + "deletedgroups_"+$tdy+".csv"
+$outputfile = "c:\temp\deletedusers_"+$tdy+".csv"
+if($Deletedusers -ne $null){$Deletedusers | export-csv -path $outputfile -notypeinformation}
+$outputfile = "c:\temp\deletedgroups_"+$tdy+".csv"
 if($deletedgroups -ne $null){$deletedgroups | export-csv -path $outputfile -notypeinformation}
-$outputfile = $outputdirectory + "deleteddevices_"+$tdy+".csv"
+$outputfile = "c:\temp\deleteddevices_"+$tdy+".csv"
 if($deleteddevices -ne $null){$deleteddevices | export-csv -path $outputfile -notypeinformation}
+
+write-host "Total Deleted Applications "$deletedapps.count
+write-host "Total Deleted ServicePrincipals "$deletedspns.count
+write-host "Total Deleted Users "$Deletedusers.count
+write-host "Total Deleted Groups "$deletedgroups.count
+write-host "Total Deleted Devices "$deleteddevices.count
+$deletedobjectcount = 0
+$deletedobjectcount = $deletedapps.count + $deletedspns.count + $deletedusers.count + $deletedgroups.count + $deleteddevices.count
+write-host "Total Deleted Objects : " $deletedobjectcount

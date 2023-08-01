@@ -10,6 +10,7 @@
 #To get a specific application last signed in
 #IF using Microsoft Excel, the local time format is m/d/yyyy h:mm:ss AM/PM - you may need to change this column as a custom format 
 
+
 IMPORTANT!!!
 
 To consent for users to run this script a global admin will need to run the following
@@ -38,8 +39,6 @@ $params = @{
 $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
 -------------------------------------------------------------------------------------------
 You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
-
-
 
 
 #>
@@ -87,7 +86,7 @@ function select-app ($appfilter,$userlist,$audittype,$readcreatefile, $selectTyp
     $label = New-Object System.Windows.Forms.Label
     $label.Location = New-Object System.Drawing.Point(10,20)
     $label.Size = New-Object System.Drawing.Size(365,20)
-    $label.Text = 'Please select-object' + $selectType
+    $label.Text = 'Please select ' + $selectType
     $form.Controls.Add($label)
 
 
@@ -221,7 +220,7 @@ Function save-file([string] $initialDirectory, $filename)
     {
         $outputfile = $filename
         $SaveFileDialog = New-Object windows.forms.savefiledialog  
-        $SaveFileDialog.FileName = $filename 
+        $SaveFileDialog.FileName = $filename
         $SaveFileDialog.initialDirectory = $initialDirectory
         $SaveFileDialog.title = "Save File to Disk"
         $SaveFileDialog.filter = "AzureADAppsList | AzureADAuditSigninApplicationList*.csv|Comma Seperated File|*.csv | All Files|*.* " 
@@ -354,17 +353,90 @@ Function open-FileName($initialDirectory, $filename)
         return $x
     } 
 	#end function get-folder 
+Function create-object($logs)
+{
+    $SigninLogProperties1 =@()
+    foreach($item in $logs)
+    {
+        $apaclist = $item.AppliedConditionalAccessPolicies
+        
+        $locationcity = $item.location.city
+        $locationcountryorregion = $item.location.CountryOrRegion
+        $locationState = $item.location.State
+        $SigninLogProperties1 += New-Object Object |
+            Add-Member -NotePropertyName CorrelationID -NotePropertyValue $item.CorrelationID -PassThru |
+            Add-Member -NotePropertyName CreatedDateTime -NotePropertyValue $item.CreatedDateTime -PassThru |
+            Add-Member -NotePropertyName userprincipalname -NotePropertyValue $item.userprincipalname -PassThru |
+            Add-Member -NotePropertyName UserId -NotePropertyValue $item.UserId -PassThru |
+            Add-Member -NotePropertyName UserDisplayName -NotePropertyValue $item.UserDisplayName -PassThru |
+            Add-Member -NotePropertyName AppDisplayName -NotePropertyValue $item.AppDisplayName -PassThru |
+            Add-Member -NotePropertyName AppId -NotePropertyValue $item.AppId -PassThru |
+            Add-Member -NotePropertyName IPAddress -NotePropertyValue $item.IPAddress -PassThru |
+            Add-Member -NotePropertyName locationcity -NotePropertyValue $locationcity -PassThru |
+            Add-Member -NotePropertyName locationcountryorregion -NotePropertyValue $locationcountryorregion -PassThru |
+            Add-Member -NotePropertyName locationState -NotePropertyValue $locationState -PassThru
+            $counter = 1
+            foreach($apac in $apaclist)
+            {
+                $CA_ConditionsNotSatisfied = $apac.'ConditionsNotSatisfied'
+                $CA_ConditionsSatisfied = $apac.'ConditionsSatisfied'
+                $CA_DisplayName = $apac.'DisplayName'
+                [string]$CA_EnforcedGrantControls = $apac.'EnforcedGrantControls'
+                [string]$CA_EnforcedSessionControls = $apac.'EnforcedSessionControls'
+                $CA_Id = $apac.'Id'
+                $CA_Result = $apac.'Result'
+                $SigninLogProperties | Add-Member -NotePropertyName CA_DisplayName_$counter -NotePropertyValue $CA_DisplayName -PassThru
+                $SigninLogProperties | Add-Member -NotePropertyName CA_Id_$counter -NotePropertyValue $CA_Id -PassThru 
+                $SigninLogProperties | Add-Member -NotePropertyName CA_Result_$counter -NotePropertyValue $CA_Result -PassThru 
+                $SigninLogProperties | Add-Member -NotePropertyName CA_ConditionsNotSatisfied_$counter -NotePropertyValue $CA_ConditionsNotSatisfied -PassThru 
+                $SigninLogProperties | Add-Member -NotePropertyName CA_ConditionsSatisfied_$counter -NotePropertyValue $CA_ConditionsSatisfied -PassThru 
+                $SigninLogProperties | Add-Member -NotePropertyName CA_EnforcedGrantControls_$counter -NotePropertyValue $CA_EnforcedGrantControls -PassThru 
+                $SigninLogProperties | Add-Member -NotePropertyName CA_EnforcedSessionControls_$counter -NotePropertyValue $CA_EnforcedSessionControls -PassThru 
 
+                $counter++
+            }
+            
+    }
+    return $SigninLogProperties1
+}
 
 #Start of script -----------------------------------------------------------------------------------------------------
 #logging in
 
+
+
+$envtype = @("Global","USGov","USGovDoD","China" )
+$envselected =  select-app -audittype $envtype -selectType "Cloud Selection"
+switch -regex ($envselected) 
+{
+    "Cancel" 
+    {
+        Write-Host "Exiting" 
+        exit
+    }
+    "Global"
+    {
+        $envselected2 = "Global"
+    }
+    "USGov"
+    {
+        $envselected2 = "USGov"
+    }
+    "USGovDoD"
+    {
+        $envselected2 = "USGovDod"
+    }
+    "China"
+    {
+        $envselected2 = "China"
+    }
+}
 try {
     
     get-mguser -Top 1 -ErrorAction stop >$null
 }
 catch {
-    Connect-MgGraph -scope "AuditLog.Read.All, directory.read.all,Policy.Read.ConditionalAccess"
+    Connect-MgGraph -scope "AuditLog.Read.All, directory.read.all,Policy.Read.ConditionalAccess" -Environment $envselected2
     Select-MgProfile -Name "beta"
 }
 
@@ -480,8 +552,6 @@ catch {
     $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
     $audittype = @("Find Users Object ID by Display Name")
     $audittype += "Enter User by Object ID"
-    $audittype += "All External Users"
-    $audittype += "External users by domain name"
     $audittype += "All Accounts - may take a long time"
     $audittype += "All Accounts Enabled ONLY- may take a long time"
     $audittype += "All Accounts Disabled ONLY- may take a long time"
@@ -491,8 +561,10 @@ catch {
     $audittype += "All Guests - may take a long time"
     $audittype += "All Guests Enabled - may take a long time"
     $audittype += "All Guests Disabled- may take a long time"
+    $audittype += "All External Users"
+    $audittype += "External users by domain name"
     
-
+    $allusersinauditlog = get-mgauditlogsignin | sort-object userprincipalname -Unique
     $aduserquestion =  select-app -audittype $audittype -selectType "Account Filter" 
 
      switch -regex ($aduserquestion) 
@@ -615,16 +687,7 @@ catch {
                     
                             $adfounduser = select-app -userlist $aduserfind -selectType "select-object  User to Audit" -multivalue $true
                             $adusers = $adfounduser 
-                            <#foreach($selecteduseritem in $adfounduser)
-                            {
-                                write-host $selecteduseritem
-
-                                [string]::$findmguser = $selecteduseritem
-                                write-host $findmguser
-                                $adusers += get-mguser |Where-Object {$_.userprincipalname -eq $findmguser}
-                                write-host $adusers
-                            } #>
-                            $fileprefix = "FindAccount_by_DisplayName_for_" + $adusers.DisplayName
+                            $fileprefix = "FindAccount_by_DisplayName_for_" + $adusers.DisplayName +$tdy+".csv"
                             $notfound = $false
                         }
                     else 
@@ -646,7 +709,8 @@ catch {
         $appfilter =@()
         $appfilter = @("All Apps Last Signin - may take a long time", "App Name")
         $appquestion = select-app -audittype $appfilter -selectType "Application Filter"
-
+        $findusersinauditlog = (Compare-Object -IncludeEqual -ExcludeDifferent $allusersinauditlog.userprincipalname $adusers).inputobject
+        
        $lastlogin = @()
         switch -regex ($appquestion) 
 		{
@@ -662,7 +726,7 @@ catch {
                 $file = $fileprefix + "_All Applications Report_" + $datetime +".csv"
 
                 
-                foreach($user in $adusers)
+                foreach($user in $findusersinauditlog)
                 {
                     #Add rem if you do not want to view work in progress
                     write-host "Checking User : " $user
@@ -689,20 +753,12 @@ catch {
                             if($logs -ne $null)
                                 {
                                 #remove rem if you want to view users with records in signin logs display (not recorded)
-                                write-host "Account " $user.UserPrincipalName " has a Last Signin to       : " $app.AppDisplayName
+                                write-host "Account " $user " has a Last Signin to       : " $app.AppDisplayName
+                                $SigninLogProperties = create-object -logs $logs
+                                <#
                                 foreach($item in $logs)
                                     {
                                         $apaclist = $item.AppliedConditionalAccessPolicies
-                                        foreach($apac in $apaclist)
-                                        {
-                                            $CA_ConditionsNotSatisfied = $apac.'ConditionsNotSatisfied'
-                                            $CA_ConditionsSatisfied = $apac.'ConditionsSatisfied'
-                                            $CA_DisplayName = $apac.'DisplayName'
-                                            [string]$CA_EnforcedGrantControls = $apac.'EnforcedGrantControls'
-                                            [string]$CA_EnforcedSessionControls = $apac.'EnforcedSessionControls'
-                                            $CA_Id = $apac.'Id'
-                                            $CA_Result = $apac.'Result'
-                                        }
                                         
                                         $locationcity = $item.location.city
                                         $locationcountryorregion = $item.location.CountryOrRegion
@@ -718,21 +774,35 @@ catch {
                                             Add-Member -NotePropertyName IPAddress -NotePropertyValue $item.IPAddress -PassThru |
                                             Add-Member -NotePropertyName locationcity -NotePropertyValue $locationcity -PassThru |
                                             Add-Member -NotePropertyName locationcountryorregion -NotePropertyValue $locationcountryorregion -PassThru |
-                                            Add-Member -NotePropertyName locationState -NotePropertyValue $locationState -PassThru |
-                                            Add-Member -NotePropertyName CA_ConditionsNotSatisfied -NotePropertyValue $CA_ConditionsNotSatisfied -PassThru |
-                                            Add-Member -NotePropertyName CA_ConditionsSatisfied -NotePropertyValue $CA_ConditionsSatisfied -PassThru |
-                                            Add-Member -NotePropertyName CA_DisplayName -NotePropertyValue $CA_DisplayName -PassThru |
-                                            Add-Member -NotePropertyName CA_EnforcedGrantControls -NotePropertyValue $CA_EnforcedGrantControls -PassThru |
-                                            Add-Member -NotePropertyName CA_EnforcedSessionControls -NotePropertyValue $CA_EnforcedSessionControls -PassThru |
-                                            Add-Member -NotePropertyName CA_Id -NotePropertyValue $CA_Id -PassThru |
-                                            Add-Member -NotePropertyName CA_Result -NotePropertyValue $CA_Result -PassThru 
+                                            Add-Member -NotePropertyName locationState -NotePropertyValue $locationState -PassThru
+                                            $counter = 1
+                                            foreach($apac in $apaclist)
+                                            {
+                                                $CA_ConditionsNotSatisfied = $apac.'ConditionsNotSatisfied'
+                                                $CA_ConditionsSatisfied = $apac.'ConditionsSatisfied'
+                                                $CA_DisplayName = $apac.'DisplayName'
+                                                [string]$CA_EnforcedGrantControls = $apac.'EnforcedGrantControls'
+                                                [string]$CA_EnforcedSessionControls = $apac.'EnforcedSessionControls'
+                                                $CA_Id = $apac.'Id'
+                                                $CA_Result = $apac.'Result'
+                                                $SigninLogProperties | Add-Member -NotePropertyName CA_DisplayName_$counter -NotePropertyValue $CA_DisplayName -PassThru
+                                                $SigninLogProperties | Add-Member -NotePropertyName CA_Id_$counter -NotePropertyValue $CA_Id -PassThru 
+                                                $SigninLogProperties | Add-Member -NotePropertyName CA_Result_$counter -NotePropertyValue $CA_Result -PassThru 
+                                                $SigninLogProperties | Add-Member -NotePropertyName CA_ConditionsNotSatisfied_$counter -NotePropertyValue $CA_ConditionsNotSatisfied -PassThru 
+                                                $SigninLogProperties | Add-Member -NotePropertyName CA_ConditionsSatisfied_$counter -NotePropertyValue $CA_ConditionsSatisfied -PassThru 
+                                                $SigninLogProperties | Add-Member -NotePropertyName CA_EnforcedGrantControls_$counter -NotePropertyValue $CA_EnforcedGrantControls -PassThru 
+                                                $SigninLogProperties | Add-Member -NotePropertyName CA_EnforcedSessionControls_$counter -NotePropertyValue $CA_EnforcedSessionControls -PassThru 
+
+                                                $counter++
+                                            }
                                             
                                     }
+                                    #>
                                 }
                             else 
                                 {
                                 #remove rem if you want to view users with no records in signin logs display (not recorded)
-                                write-host "Account " $user.UserPrincipalName " has no recorded signins to : " $app.AppDisplayName
+                                write-host "Account " $user " has no recorded signins to : " $app.AppDisplayName
                                 
                                 }
                         
@@ -763,13 +833,12 @@ catch {
                 $file = $fileprefix + "Find Applications Report_" +$tdy +".csv"
                 $appchoice = select-app -appslist $appslist -selectType "Application to Audit" -multivalue $true
                 if ($appchoice -eq "Cancel"){exit}
-                foreach($user in $adusers)
+                foreach($user in $findusersinauditlog)
                 {
                     #Add rem if you do not want to view work in progress
                     write-host "Checking User : " $user
                     #creating Filter for UserPrincipalName DisplayName String 
                     $filter1 = " and userPrincipalName eq"
-                    #$filter2 = $user.userprincipalname
                     $filter2 = $user.ToLower()
                     $filter3 = $filter1 + " '" +$filter2 + "'"
 
@@ -787,22 +856,13 @@ catch {
                         if($logs.count -ne 0)
                             {
                             #remove rem if you want to view users with records in signin logs display (not recorded)
-                            write-host "Account " $user.UserPrincipalName " has a Last Signin to       : " $app
+                            write-host "Account " $user " has a Last Signin to       : " $app
                             
-                            #$logs[0]
+                            $SigninLogProperties = create-object -logs $logs
+                            <#
                             foreach($item in $logs)
                             {
                                 $apaclist = $item.AppliedConditionalAccessPolicies
-                                foreach($apac in $apaclist)
-                                {
-                                    $CA_ConditionsNotSatisfied = $apac.'ConditionsNotSatisfied'
-                                    $CA_ConditionsSatisfied = $apac.'ConditionsSatisfied'
-                                    $CA_DisplayName = $apac.'DisplayName'
-                                    [string]$CA_EnforcedGrantControls = $apac.'EnforcedGrantControls'
-                                    [string]$CA_EnforcedSessionControls = $apac.'EnforcedSessionControls'
-                                    $CA_Id = $apac.'Id'
-                                    $CA_Result = $apac.'Result'
-                                }
                                 $locationcity = $item.location.city
                                 $locationcountryorregion = $item.location.CountryOrRegion
                                 $locationState = $item.location.State
@@ -817,21 +877,36 @@ catch {
                                     Add-Member -NotePropertyName IPAddress -NotePropertyValue $item.IPAddress -PassThru |
                                     Add-Member -NotePropertyName locationcity -NotePropertyValue $locationcity -PassThru |
                                     Add-Member -NotePropertyName locationcountryorregion -NotePropertyValue $locationcountryorregion -PassThru |
-                                    Add-Member -NotePropertyName locationState -NotePropertyValue $locationState -PassThru |
-                                    Add-Member -NotePropertyName CA_ConditionsNotSatisfied -NotePropertyValue $CA_ConditionsNotSatisfied -PassThru |
-                                    Add-Member -NotePropertyName CA_ConditionsSatisfied -NotePropertyValue $CA_ConditionsSatisfied -PassThru |
-                                    Add-Member -NotePropertyName CA_DisplayName -NotePropertyValue $CA_DisplayName -PassThru |
-                                    Add-Member -NotePropertyName CA_EnforcedGrantControls -NotePropertyValue $CA_EnforcedGrantControls -PassThru |
-                                    Add-Member -NotePropertyName CA_EnforcedSessionControls -NotePropertyValue $CA_EnforcedSessionControls -PassThru |
-                                    Add-Member -NotePropertyName CA_Id -NotePropertyValue $CA_Id -PassThru |
-                                    Add-Member -NotePropertyName CA_Result -NotePropertyValue $CA_Result -PassThru
+                                    Add-Member -NotePropertyName locationState -NotePropertyValue $locationState -PassThru 
+                                    
+                                    $counter = 1
+                                    foreach($apac in $apaclist)
+                                    {
+                                        $CA_ConditionsNotSatisfied = $apac.'ConditionsNotSatisfied'
+                                        $CA_ConditionsSatisfied = $apac.'ConditionsSatisfied'
+                                        $CA_DisplayName = $apac.'DisplayName'
+                                        [string]$CA_EnforcedGrantControls = $apac.'EnforcedGrantControls'
+                                        [string]$CA_EnforcedSessionControls = $apac.'EnforcedSessionControls'
+                                        $CA_Id = $apac.'Id'
+                                        $CA_Result = $apac.'Result'
+                                        $SigninLogProperties | Add-Member -NotePropertyName CA_DisplayName_$counter -NotePropertyValue $CA_DisplayName -PassThru
+                                        $SigninLogProperties | Add-Member -NotePropertyName CA_Id_$counter -NotePropertyValue $CA_DisplayName -PassThru 
+                                        $SigninLogProperties | Add-Member -NotePropertyName CA_Result_$counter -NotePropertyValue $CA_Result -PassThru 
+                                        $SigninLogProperties | Add-Member -NotePropertyName CA_ConditionsNotSatisfied_$counter -NotePropertyValue $CA_ConditionsNotSatisfied -PassThru 
+                                        $SigninLogProperties | Add-Member -NotePropertyName CA_ConditionsSatisfied_$counter -NotePropertyValue $CA_ConditionsSatisfied -PassThru 
+                                        $SigninLogProperties | Add-Member -NotePropertyName CA_EnforcedGrantControls_$counter -NotePropertyValue $CA_EnforcedGrantControls -PassThru 
+                                        $SigninLogProperties | Add-Member -NotePropertyName CA_EnforcedSessionControls_$counter -NotePropertyValue $CA_EnforcedSessionControls -PassThru 
+
+                                        $counter++
+                                    }
                             }
+                            #>
                             #$lastlogin | Export-Csv -Path $OutputFile -NoTypeInformation -force 
                             }
                         else 
                             {
                             #remove rem if you want to view users with no records in signin logs display (not recorded)
-                            write-host "Account " $user.UserPrincipalName " has no recorded signins to : " $app
+                            write-host "Account " $user " has no recorded signins to : " $app
                             
                             }
                     }

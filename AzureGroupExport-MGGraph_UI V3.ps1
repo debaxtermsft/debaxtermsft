@@ -24,7 +24,7 @@ IMPORTANT!!!
 
 To consent for users to run this script a global admin will need to run the following
 -------------------------------------------------------------------------------------------
-$sp = get-mgserviceprincipal | ?{$_.displayname -like "Microsoft Graph Powershell*"}
+$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
 $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
 $principalid = "users object id"
 $scope1 ="group.read.all"
@@ -43,7 +43,7 @@ $params = @{
 
 $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
 -------------------------------------------------------------------------------------------
-
+You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
 
 #>
 #######################

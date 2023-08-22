@@ -4,7 +4,7 @@ Written By Derrick Baxter debaxter@microsoft.com
 This script will export all API (Principals) that have been granted permissions to APPs
 
 example: 
-./AzureOAuthAppConsentedAPIPermissions.ps1 -outputdirectory "c:\temp"
+./AzureOAuthAppConsentedAPIPermissions.ps1 -outputdirectory "c:\temp" 
 
 A global administrator will need to consent to permissions first if the person running the below script is not a GA.
 #----------start consent script

@@ -152,12 +152,7 @@ $counter = 0
                         }
                 }
          $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
-#        $filename1 = $filename +" " + $subscriptionselected.name+" "+$subscriptionselected.id +" "+ $domainselected +" "+ $tdy +".csv"           
-#        $OutputFile = "$outputdirectory"+"\"+"$filename1" 
         $file = $Outputdirectory +"_" + $tenandID+"_" + $subscriptionselected.id +"_" + $mainmenu +"_" + $scope+ "_" +$tdy+".csv"
-        #$AASRolegroupoutput = "'DisplayName','ObjectID','ObjectType','RoleDefinitionName','Scope','RoleDefinitionID','RoleAssignmentID'"
-        #$AASRolegroupoutput |  Out-File -FilePath $file -Encoding utf8 -Force
-        #$roleinfo | Out-File -FilePath $file -Encoding utf8 -Append
         $rbacroles | export-csv -Path $file -NoTypeInformation -Encoding utf8 -Force
         }
     

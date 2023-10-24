@@ -3,7 +3,7 @@ update 6/25/21 - modified search dates to GT and LT and date range search
 update 4/11/22 - external user all and domain name searching
 update 6/21/22 - made modifications to code
 updated 3/28/23 - updated to show CA policies
-Script is using 2.0.2.129  AzureADPreview available commands.  please make sure you are using at least this version of azuread
+Script is using microsoft graph available commands.  please make sure you are using at least this version of azuread
 This script also uses many windows forms, boxes, textboxes and selection boxes
 This script will launch Microsoft Excel at the end to allow viewing the result
 Script creates a csv output of the last recorded signin logs for all Azure AD Users (members and guests) based on the applicatoin below.

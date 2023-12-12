@@ -92,6 +92,7 @@ do
             else 
             {
                 $dn = $item.Displayname
+                $mail = $item.mail
                 $upn = $item.userprincipalname 
                 $sirq = $item.signinactivity.lastSignInRequestId
                 $sidate = $item.signinactivity.lastSignInDateTime
@@ -99,6 +100,7 @@ do
                 $nidate = $item.signinactivity.lastNonInteractiveSignInDateTime
                 $SigninLogProperties += New-Object Object |
                                         Add-Member -NotePropertyName DisplayName -NotePropertyValue $dn -PassThru |
+                                        Add-Member -NotePropertyName Mail -NotePropertyValue $mail -PassThru |
                                         Add-Member -NotePropertyName UserprincipalName -NotePropertyValue $upn -PassThru |
                                         Add-Member -NotePropertyName ObjectID -NotePropertyValue $item.id -PassThru |
                                         Add-Member -NotePropertyName LastSignin_Rq_ID -NotePropertyValue $sirq -PassThru |

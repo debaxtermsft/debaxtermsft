@@ -1,5 +1,5 @@
 # written by debaxter
-# 4/8/22
+# 1/4/24
 # 
 # Used this script to check if the MSOL service used for ADConnect and see if the correct permissions have been set on the users for SSPR/Password writeback
 # Checks for the following permissions and writes to the file

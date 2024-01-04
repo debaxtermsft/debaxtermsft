@@ -17,6 +17,37 @@
  Group Licenses - Selected (select the groups with licenses assigned to export)
  Export Conditional Access Policies with included/excluded groups
 Using Powershell microsoft.graph
+
+
+You may need to have a global admin run the below rem'ed script to consent to the user to run this script
+"group.read.all, directory.read.all, groupmember.read.all, Policy.Read.ConditionalAccess, Application.Read.All"
+$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
+$resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
+$principalid = "user object id"
+$scope1 ="group.read.all"
+$scope2 ="directory.read.all"
+$scope3 ="groupmember.read.all"
+$scope4 ="Policy.Read.ConditionalAccess"
+$scope5 ="Application.Read.All"
+$today = Get-Date -Format "yyyy-MM-dd"
+$expiredate1 = get-date
+$expiredate2 = $expiredate1.AddDays(365).ToString("yyyy-MM-dd")
+$params = @{
+    ClientId = $SP.Id
+    ConsentType = "Principal"
+    ResourceId = $resource.id
+    principalId = $principalid
+    Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3"+ " " + "$scope4"+ " " + "$scope5"
+    startTime = "$today"
+    expiryTime = "$expiredate2"
+}
+$InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
+
+
+You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
+
+
+
 #>
 #######################
 

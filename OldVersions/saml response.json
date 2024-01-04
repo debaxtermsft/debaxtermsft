@@ -1,0 +1,38 @@
+<samlp:Response Version="2.0" ID="IDFOBrAtpPgkvjJSOdRhCNAFahV" IssueInstant="2023-10-04T19:07:05.078Z" InResponseTo="_22a3d569-2fe9-4579-a2a2-e11b0805e185" xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+<saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">https://ciamidp-tst.ajgco.com/</saml:Issuer><samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status>
+<saml:Assertion ID="a0AU3PZzGC0S-U8As05N.FEuy5E" IssueInstant="2023-10-04T19:07:05.098Z" Version="2.0" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">
+        <saml:Issuer>https://ciamidp-tst.ajgco.com/</saml:Issuer>
+        <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+            <ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+            <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+            <ds:Reference URI="#a0AU3PZzGC0S-U8As05N.FEuy5E">
+            <ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+            <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transforms>
+            <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+            <ds:DigestValue>Ham9xyztpO7agrO1LEHh3RVDrziugsoveQtcUB9lVxM=</ds:DigestValue>
+            </ds:Reference>
+            </ds:SignedInfo>
+                <ds:SignatureValue>eKW3pq3YUp55h4ExToetPk0KrzlgdyodY4UvWpiv6C9NEy1aTzJBq13/k78jnzvgCqfUsGpSh0acPrDP2HcAsb9IzvPSoAtmgT2mEBRqa+A8rUol5mzP3wqeVFB68sQeFm9c9EgkEONUD+xQ2y9Q5u24NSrpwtmjHI88MMRKgwX/NIGKYs4FJocqSNzke5fKQ7ZgMPSfLo5eeyrEXNvP87tm+JvwHc8In93SXSK0lfQakbsE7gGcwvV5Wt1BHp/rxvynNe3dd6ELvEyxgprFuqCxql1KYRRpxvPwwBxaLK49a8wmJ/th5FdEgY3x9Dm5aHwBB078KXRbiL7ZpqEmRw==
+                </ds:SignatureValue>
+        </ds:Signature>
+        <saml:Subject>
+            <saml:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent" NameQualifier="https://ciamidp-tst.ajgco.com/" SPNameQualifier="https://login.microsoftonline.com/514cfa91-3c60-43be-9756-9d87ccea2068/">31F2D63A2275529CDE6EEE8A17BCF5077B7622EB</saml:NameID>
+                <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                <saml:SubjectConfirmationData Recipient="https://login.microsoftonline.com/login.srf" NotOnOrAfter="2023-10-04T19:12:05.098Z" InResponseTo="_22a3d569-2fe9-4579-a2a2-e11b0805e185"/></saml:SubjectConfirmation>
+        </saml:Subject>
+            <saml:Conditions NotBefore="2023-10-04T19:02:05.098Z" NotOnOrAfter="2023-10-04T19:12:05.098Z">
+            <saml:AudienceRestriction>
+            <saml:Audience>https://login.microsoftonline.com/514cfa91-3c60-43be-9756-9d87ccea2068/</saml:Audience>
+            </saml:AudienceRestriction>
+        </saml:Conditions>
+            <saml:AuthnStatement SessionIndex="a0AU3PZzGC0S-U8As05N.FEuy5E" AuthnInstant="2023-10-04T19:07:05.092Z">
+                <saml:AuthnContext>
+                <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified</saml:AuthnContextClassRef></saml:AuthnContext>
+            </saml:AuthnStatement>
+            <saml:AttributeStatement>
+            <saml:Attribute Name="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+                <saml:AttributeValue xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">taha.sarkhot@ciamidp-tst.ajg.com</saml:AttributeValue>
+                </saml:Attribute>
+            </saml:AttributeStatement>
+</saml:Assertion>
+</samlp:Response>

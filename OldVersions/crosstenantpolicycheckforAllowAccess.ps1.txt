@@ -1,0 +1,30 @@
+Connect-MgGraph -scope "directory.AccessAsUser.All"
+Select-MgProfile "beta"
+
+$header = @{
+    'Content-type' = "application/json"
+    }
+
+
+$defaultpolicy = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/policies/crossTenantAccessPolicy/default" -Method GET -Headers $header
+write-host "Default Cross Tenant Policy"
+write-host "Tenantid : " $defaultpolicy.'id'
+foreach ($keyitem in $defaultpolicy.keys)
+{
+    if($keyitem -like "AllowAccess*") {write-host "Warning AllowAccess is set"}
+    write-host "PolicySet Names : " $keyitem
+    
+}
+
+$partnerpolicy = Invoke-MgGraphRequest -uri "https://graph.microsoft.com/beta/policies/crossTenantAccessPolicy/partners" -Method GET -Headers $header
+write-host "Partners Cross Tenant Policies"
+foreach ($policyitem in $partnerpolicy.value)
+{
+    write-host "Cross Tenantid : " $policyitem.'tenantid'
+    foreach ($keyitem in $policyitem.keys)
+    {
+        if($keyitem -like "AllowAccess*") {write-host "Warning AllowAccess is set"}
+        write-host "PolicySet Names : " $keyitem
+        
+    }
+}

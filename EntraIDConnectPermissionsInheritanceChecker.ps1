@@ -99,7 +99,7 @@ if($OUorUser -eq "User") #User Selected
             $acls = & dsacls $holduser | select-string "$adcserviceprincipal" 
             foreach ($foundacl in $acls)
                 {
-                    if($foundacl -match "pwdLastSet" -or $foundacl -match"lockoutTime" -or $foundacl -match"Change Password"-or $foundacl -match"Reset Password" -or $foundacl -match "mS-DS-ConsistencyGuid" -or  $foundacl -match "msDS-KeyCredential")
+                    if($foundacl -match "pwdLastSet" -or $foundacl -match"lockoutTime" -or $foundacl -match"Change Password"-or $foundacl -match"Reset Password" -or $foundacl -match "mS-DS-ConsistencyGuid" -or  $foundacl -match "msDS-KeyCredential" -or  $foundacl -match "Unexpire Password")
                         {
                             $exportacls += New-Object object |
                                 Add-Member -NotePropertyName User -NotePropertyValue $user -PassThru |
@@ -142,7 +142,7 @@ else # "OU" selected
         $foundOU = @()
         foreach($OUItem in $checkOUPerm)
         {
-            if($OUItem -match "pwdLastSet" -or $OUItem -match"lockoutTime" -or $OUItem -match"Change Password"-or $OUItem -match"Reset Password" -or $OUItem -match "mS-DS-ConsistencyGuid" -or  $OUItem -match "msDS-KeyCredential")
+            if($OUItem -match "pwdLastSet" -or $OUItem -match"lockoutTime" -or $OUItem -match"Change Password"-or $OUItem -match"Reset Password" -or $OUItem -match "mS-DS-ConsistencyGuid" -or  $OUItem -match "msDS-KeyCredential" -or  $foundacl -match "Unexpire Password")
                 {
                   $foundOU += New-Object object |
                     Add-Member -NotePropertyName DistinguishedName -NotePropertyValue $dn -PassThru |
@@ -160,7 +160,7 @@ else # "OU" selected
             $findOUACLs = dsacls $OUFound.distinguishedname | select-string $adcserviceprincipal    
             foreach($OUItem in $findOUACLs)
             {
-                if($OUItem -match "pwdLastSet" -or $OUItem -match"lockoutTime" -or $OUItem -match"Change Password"-or $OUItem -match"Reset Password" -or $OUItem -match "mS-DS-ConsistencyGuid" -or  $OUItem -match "msDS-KeyCredential")
+                if($OUItem -match "pwdLastSet" -or $OUItem -match"lockoutTime" -or $OUItem -match"Change Password"-or $OUItem -match"Reset Password" -or $OUItem -match "mS-DS-ConsistencyGuid" -or  $OUItem -match "msDS-KeyCredential" -or  $foundacl -match "Unexpire Password")
                     {
                         $foundOU += New-Object object |
                         Add-Member -NotePropertyName DistinguishedName -NotePropertyValue $OUFound.distinguishedname -PassThru |

@@ -21,7 +21,7 @@
 param([parameter(mandatory)][string] $tenandID,
             [parameter (mandatory=$false)][validateset("All")] [string]$AllSubs,
             [parameter(mandatory=$false)][string]$subscriptionID,  
-            [parameter(mandatory)][validateset("All RBAC","All Users","All Groups", "All Service Principals", "Identity Unknown")][string] $mainmenu,
+            [parameter(mandatory)][validateset("All RBAC","All Users","All Groups", "All Service Principals", "Identity Unknown", "InheritanceCheck", "Cancel")][string] $mainmenu,
             [parameter(mandatory)][validateset("DisplayName","Scope","RoleDefinitionName")] [string]$scopetype,
           #[parameter(mandatory)][validateset("All","Azure","Office")] [string]$SorOGroup,
             [parameter(mandatory)] [string]$Outputdirectory)
@@ -57,7 +57,7 @@ catch
 
 $counter = 0
 
-
+$id = @()
  
 
     foreach ($subscriptionselected in $subscription)
@@ -79,11 +79,12 @@ $counter = 0
                     write-host "Scanning RBAC Roles in Subscription : " $subscriptionselected
 
                         Set-AzContext -Subscription $subscriptionselected.id #-Tenant $subselectect.TenantId
+            switch -exact ($mainmenu) 
+            {
+                "Cancel" {exit}
+                "All RBAC"
+                {
 
-                if ($mainmenu -eq "All RBAC")
-                {                
-                    
-                    $list = get-azroleassignment  
                     $users = get-azroleassignment # | Where-Object {$_.SignInName -ne $null} 
                     foreach ($userfound in $users)
                     {
@@ -92,8 +93,7 @@ $counter = 0
 
                     #build-file -anotherlist $list -filename $file  -scopetype $selectscope -outputdirectory $outputdirectory
                 }
-
-                elseif ($mainmenu -eq "All Groups")
+                "All Groups"
                 {
                     $objecttype = "Group"
 
@@ -101,14 +101,14 @@ $counter = 0
                     #build-file -passlist $list -filename $file  -scopetype $selectscope -outputdirectory $outputdirectory
                 }
                 # gets all User role assignments
-                elseif ($mainmenu -eq "All Users")
+                "All Users"
                 {
                     $objecttype = "User"
                     $list = get-azroleassignment  | Where-Object {$_.ObjectType -eq $objecttype -and $_.SignInName -ne $null} 
                     #build-file -passlist $list -filename $file -scopetype $selectscope -outputdirectory $outputdirectory
                 }
                 # gets all ServicePrincipal role assignments
-                elseif ($mainmenu -eq "All Service Principals")
+                "All Service Principals"
                 {
                     $objecttype = "ServicePrincipal"
                     $list = get-azroleassignment  | Where-Object {$_.ObjectType -eq $objecttype} 
@@ -117,13 +117,34 @@ $counter = 0
                 # gets all role assignments
 
                 # gets all Identity Unknown role assignments - Either User, Group, SPN was deleted
-                elseif ($mainmenu -eq "Identity Unknown")
+                "Identity Unknown"
                 {
         
                     $objecttype = "Unknown"
                     
                     $list = get-azroleassignment  | Where-Object {$_.displayname -eq $null -and $_.SignInName -eq $null}
                     #build-file -passlist $list -filename $file  -scopetype $selectscope -outputdirectory $outputdirectory
+                }
+                "InheritanceCheck"
+                {
+                    $objecttype = "InheritanceCheck"
+                    $resources = get-azresource | Sort-Object ResourceId
+                    <#
+                    Name              : privatelink.file.core.windows.net/jvnvihmtle6yc
+                    ResourceGroupName : vsrg01
+                    ResourceType      : Microsoft.Network/privateDnsZones/virtualNetworkLinks
+                    Location          : global
+                    ResourceId        : /subscriptions/1f9cb4ee-d775-43a4-a664-7881ddfaabb2/resourceGroups/vsrg01/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net/virtualNetworkLinks/jvnvihmtle6yc
+                    Tags              : 
+                    #>
+                    foreach($resourceFounditem in $resources)
+                    {
+                        $id = $resourceFounditem.ResourceId
+                        $templist = Get-AzRoleAssignment -scope $id | Sort-Object Scope
+                        #add in checker to see if the scope eq to the resourceFounditem
+                        $list += $templist
+                    }
+                    
                 }
 
             $rbacrolelist = $list |Sort-Object $scopetype 
@@ -156,7 +177,7 @@ $counter = 0
         $rbacroles | export-csv -Path $file -NoTypeInformation -Encoding utf8 -Force
         }
     
-    #}
+    
     
 
     

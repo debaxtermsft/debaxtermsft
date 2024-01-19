@@ -205,7 +205,7 @@ if ($subsxquestion -eq "Cancel"){break}
 $subs =@()
 Foreach ($subanswer in $subsxquestion)
 {
-    $subs += Get-AzSubscription |?{$_.Name -eq "$subanswer"}
+    $subs += Get-AzSubscription |?{$_.Name -eq "$subanswer" -and $_.tenantid -eq $domainitem.TenantId}
 }
 
 
@@ -251,8 +251,6 @@ if ($selectscope -eq "Cancel"){break}
 
                 if ($groupquestion -eq "All RBAC")
                 {                
-                    
-                    $list = get-azroleassignment  
                     $users = get-azroleassignment # | Where-Object {$_.SignInName -ne $null} 
                     foreach ($userfound in $users)
                     {

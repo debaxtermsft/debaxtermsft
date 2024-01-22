@@ -17,12 +17,18 @@ $scope1 ="auditlog.read.all"
 $scope2 ="directory.read.all"
 $scope3 ="user.read.all"
 
+$today = Get-Date -Format "yyyy-MM-dd"
+$expiredate1 = get-date
+$expiredate2 = $expiredate1.AddDays(365).ToString("yyyy-MM-dd")
 $params = @{
     ClientId = $SP.Id
     ConsentType = "Principal"
     ResourceId = $resource.id
     principalId = $principalid
     Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3"
+    startTime = "$today"
+    expiryTime = "$expiredate2"
+
 }
 
 $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params

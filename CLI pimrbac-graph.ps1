@@ -40,7 +40,7 @@ IMPORTANT!!!
 
 To consent for users to run this script a global admin will need to run the following
 -------------------------------------------------------------------------------------------
-"directory.read.all, PrivilegedAccess.Read.AzureResources, PrivilegedAccess.Read.AzureADGroup, PrivilegedAccess.Read.AzureAD"
+
 $sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
 $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
 $principalid = "users object id"
@@ -48,14 +48,19 @@ $scope1 ="PrivilegedAccess.Read.AzureResources"
 $scope2 ="directory.read.all"
 $scope3 ="PrivilegedAccess.Read.AzureADGroup"
 $scope4 ="PrivilegedAccess.Read.AzureAD"
-
-
+$today = Get-Date -Format "yyyy-MM-dd"
+$expiredate1 = get-date
+$expiredate2 = $expiredate1.AddDays(365).ToString("yyyy-MM-dd")
 $params = @{
     ClientId = $SP.Id
     ConsentType = "Principal"
     ResourceId = $resource.id
     principalId = $principalid
     Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3"+ " " + "$scope4"
+    startTime = "$today"
+    expiryTime = "$expiredate2"
+
+
 }
 
 $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
@@ -68,7 +73,7 @@ You may need to update the connect-mggraph to have the -environment USGov or as 
 
 
 param([parameter(mandatory=$false)][string] $tenantID,
-            [parameter (mandatory)][validateset("ManagementGroup", "Subscription","ResourceGroup","All")] [string]$resourcequestion,
+            [parameter (mandatory)][validateset("ManagementGroup", "Subscription","ResourceGroup","All", "Cancel")] [string]$resourcequestion,
             [parameter(mandatory=$false)][validateset("Name", "ObjectID")][string]$NameorIDSelect,
             [parameter(mandatory=$false)][string]$NameorID,
             [parameter(mandatory)][validateset("Yes", "No")][string]$skipInheritance,

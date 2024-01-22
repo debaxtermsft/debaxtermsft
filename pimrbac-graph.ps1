@@ -34,6 +34,43 @@ Will take a long time but not as long as with SkipInheritance set to NO
 .\pimrbac-graph.ps1 -tenantid "tenantid"  -resourcequestion All -skipInheritance Yes -Outputdirectory c:\temp\
 Show all inheritance - will take a VERY LONG TIME
 .\pimrbac-graph.ps1 -tenantid "tenantid"  -resourcequestion All -skipInheritance No -Outputdirectory c:\temp\
+
+
+IMPORTANT!!!
+
+To consent for users to run this script a global admin will need to run the following
+-------------------------------------------------------------------------------------------
+$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
+$resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
+$principalid = "users object id"
+"directory.read.all, PrivilegedAccess.Read.AzureResources, PrivilegedAccess.Read.AzureADGroup, PrivilegedAccess.Read.AzureAD"
+
+$scope1 ="PrivilegedAccess.Read.AzureResources"
+$scope2 ="directory.read.all"
+$scope3 ="PrivilegedAccess.Read.AzureADGroup"
+$scope4 ="PrivilegedAccess.Read.AzureAD"
+
+$today = Get-Date -Format "yyyy-MM-dd"
+$expiredate1 = get-date
+$expiredate2 = $expiredate1.AddDays(365).ToString("yyyy-MM-dd")
+$params = @{
+    ClientId = $SP.Id
+    ConsentType = "Principal"
+    ResourceId = $resource.id
+    principalId = $principalid
+    Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3"+ " " + "$scope4" 
+    startTime = "$today"
+    expiryTime = "$expiredate2"
+
+}
+
+$InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
+-------------------------------------------------------------------------------------------
+You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
+
+#>
+
+
 #>
 
 

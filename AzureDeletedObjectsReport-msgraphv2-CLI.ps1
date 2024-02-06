@@ -57,63 +57,6 @@ $deletedgroups =@()
 $deleteddevices =@()
 $WarningPreference = "SilentlyContinue"  
 
-
-switch -exact ($deletedobjectquestion) 
-            {
-                "Cancel" {exit}
-                "Users"
-                {
-                    write-host "Reporting Deleted Users"
-                    #$users = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.user?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                }
-                "Groups"
-                {
-                    write-host "Reporting Deleted Groups"
-                    #$groups = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.group?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                }
-                "Applications"
-                {
-                    write-host "Reporting Deleted Applications"
-                    #$apps = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.application?&'$count=true&'$orderBy=deletedDateTime+desc&'$select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                }
-                "ServicePrincipals"
-                {
-                    write-host "Reporting Deleted ServicePrincipals"
-                    #$spns = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.serviceprincipal?&'$count=true&'$orderBy=deletedDateTime+desc&'$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                }
-                "Devices"
-                {
-                    write-host "Reporting Deleted Devices"
-                    #$devices = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.device?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                }
-                "All"
-                {
-                    write-host "Reporting All Deleted Objects"
-                    #$apps = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.application?&'$count=true&'$orderBy=deletedDateTime+desc&'$select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                    #$spns = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.serviceprincipal?&'$count=true&'$orderBy=deletedDateTime+desc&'$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                    #$users = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.user?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                    #$groups = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.group?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                    #$devices = invoke-MgGraphrequest -Uri "https://graph.microsoft.com/beta/directory/deletedItems/microsoft.graph.device?&'$count=true&$'orderBy=deletedDateTime+desc&$'select=id,displayName,deletedDateTime/organization" -Method GET -Headers @{ConsistencyLevel='eventual'}
-                }
-            }
-   
-  
-try
-    {
-    Get-MGDomain -ErrorAction Stop > $null
-    }
-catch
-    {
-    Connect-MgGraph -Scopes "directory.read.all, Application.Read.All"
-    Select-MgProfile -Name "beta"
-    }
-
-$deletedapps =@()
-$deletedspns = @()
-$deletedusers =@()
-$deletedgroups =@()
-$deleteddevices =@()
-
 switch -exact ($deletedobjectquestion) 
             {
                 "Cancel" {exit}

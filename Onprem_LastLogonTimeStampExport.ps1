@@ -7,6 +7,12 @@ Can be used in combination with scripts in this repository commercial_graphapi_s
 Compare AD and AAD signin/logon activity
 Modify the .addddays(-30) to the number of days back you need to check if a user has not logged in
 
+run 
+Days Back can be either -30, -90 OR 30, 90 as the script will check and update to a negative number
+For gt 30 days
+.\lastlogontimestamp.ps1 -daysback 30 -outputdirectory "C:\temp\"
+For gt 90 days
+.\lastlogontimestamp.ps1 -daysback 90 -outputdirectory "C:\temp\"
 
 #>
 param([parameter(Position=0,mandatory=$false)][int]$DaysBack,

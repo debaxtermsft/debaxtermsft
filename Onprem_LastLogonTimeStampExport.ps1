@@ -5,9 +5,7 @@ Run on a DC or DC accessible domain joined machine
 Used for customers wanting to be able to check the lastlogondate and lastlogontimestamp values to see if users have not signed in locally for a long time
 Can be used in combination with scripts in this repository commercial_graphapi_signinactivity for AAD
 Compare AD and AAD signin/logon activity
-Modify the .addddays(-30) to the number of days back you need to check if a user has not logged in
 
-run 
 Days Back can be either -30, -90 OR 30, 90 as the script will check and update to a negative number 
 For gt 30 days
 .\lastlogontimestamp.ps1 -daysback 30 -outputdirectory "C:\temp\"

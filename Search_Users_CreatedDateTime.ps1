@@ -29,7 +29,7 @@ Just a startDate
 Just an endDate
 .\Search_Users_CreatedDateTime.ps1 
 -tenantID "tenantID" 
--startDate "01/01/2024" 
+-endDate "01/01/2024" 
 -Outputdirectory "c:\temp\"
 
 To consent for users to run this script a global admin will need to run the following

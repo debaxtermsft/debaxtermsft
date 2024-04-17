@@ -6,6 +6,7 @@ pick the signin activity below (unrem) and run
 Update the $outputfile location from c:\temp\name as wanted - date and .csv are automatically added to avoid overwritting  
 
 IMPORTANT!!!
+
 TenantID is not required but recommended
 .\Search_Users_CreatedDateTime.ps1 
 -tenantID "tenantID" 
@@ -17,6 +18,18 @@ Running without TenantID
 .\Search_Users_CreatedDateTime.ps1 
 -startDate "01/01/2024" 
 -endDate "03/31/2024" 
+-Outputdirectory "c:\temp\"
+
+Just a startDate
+.\Search_Users_CreatedDateTime.ps1 
+-tenantID "tenantID" 
+-startDate "01/01/2024" 
+-Outputdirectory "c:\temp\"
+
+Just an endDate
+.\Search_Users_CreatedDateTime.ps1 
+-tenantID "tenantID" 
+-startDate "01/01/2024" 
 -Outputdirectory "c:\temp\"
 
 To consent for users to run this script a global admin will need to run the following
@@ -63,8 +76,20 @@ else
     connect-mggraph -scopes "directory.read.all, user.read.all" -TenantId $tenantID
 }
 
+if(!$startDate)
+{
+	$users = get-mguser -all -Property displayname, createdDateTime, userprincipalname | select displayname, userprincipalname, createdDateTime  |  where-object { $_.createdDateTime -le (Get-Date($endDate)) }
+}
+elseif(!$endDate)
+{
+	$users = get-mguser -all -Property displayname, createdDateTime, userprincipalname | select displayname, userprincipalname, createdDateTime  |  where-object { $_.createdDateTime -gt (Get-Date($startDate))}
+}
+else
+{
+	$users = get-mguser -all -Property displayname, createdDateTime, userprincipalname | select displayname, userprincipalname, createdDateTime  |  where-object { $_.createdDateTime -gt (Get-Date($startDate)) -and $_.createdDateTime -le (Get-Date($endDate)) }
+}
+
 $CreatedDateTimeProperties =@()
-$users = get-mguser -all -Property displayname, createdDateTime, userprincipalname | select displayname, userprincipalname, createdDateTime  |  where-object { $_.createdDateTime -gt (Get-Date($startDate)) -and $_.createdDateTime -le (Get-Date($endDate)) }
 
 foreach($item in $users)
 {

@@ -27,7 +27,7 @@ elseif($daysback -gt 0) #making sure entered days back is negative
 # where-object filter setup to not pull accounts without userprincipalnames 
 # DN added as service account and accounts without UPN are typically not needed.  
 #remove -and $_.userprincipalname -ne $null if you want ALL Accounts onprem
-$adusers = get-aduser -filter * -properties * | Where-Object {$_.lastlogondate -ge (get-date).adddays(-30) -and $_.userprincipalname -ne $null} | select displayname,userprincipalname,DistinguishedName, LastLogonDate, lastLogonTimestamp
+$adusers = get-aduser -filter * -properties * | Where-Object {$_.lastlogondate -ge (get-date).adddays($daysback) -and $_.userprincipalname -ne $null} | select displayname,userprincipalname,DistinguishedName, LastLogonDate, lastLogonTimestamp
 $lastLogonTimestampProperties =@()
 
 foreach($item in $adusers)

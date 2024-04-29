@@ -129,14 +129,6 @@ $id = @()
                 {
                     $objecttype = "InheritanceCheck"
                     $resources = get-azresource | Sort-Object ResourceId
-                    <#
-                    Name              : privatelink.file.core.windows.net/jvnvihmtle6yc
-                    ResourceGroupName : vsrg01
-                    ResourceType      : Microsoft.Network/privateDnsZones/virtualNetworkLinks
-                    Location          : global
-                    ResourceId        : /subscriptions/<subid>/resourceGroups/vsrg01/providers/Microsoft.Network/privateDnsZones/...
-                    Tags              : 
-                    #>
                     foreach($resourceFounditem in $resources)
                     {
                         $id = $resourceFounditem.ResourceId

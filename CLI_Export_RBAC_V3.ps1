@@ -134,7 +134,7 @@ $id = @()
                     ResourceGroupName : vsrg01
                     ResourceType      : Microsoft.Network/privateDnsZones/virtualNetworkLinks
                     Location          : global
-                    ResourceId        : /subscriptions/1f9cb4ee-d775-43a4-a664-7881ddfaabb2/resourceGroups/vsrg01/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net/virtualNetworkLinks/jvnvihmtle6yc
+                    ResourceId        : /subscriptions/<subid>/resourceGroups/vsrg01/providers/Microsoft.Network/privateDnsZones/...
                     Tags              : 
                     #>
                     foreach($resourceFounditem in $resources)

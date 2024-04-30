@@ -1,6 +1,6 @@
 <#
 Written by Derrick Baxter 4/20/24
-This script uses Az module for powershell to search for conditions *AnyOfAnyValues:GuidNotEquals*
+This script uses Az module for powershell (microsoft.graph coming out soon)
 Switches to get ALL subscriptions within a Tenant (you must have Reader, Owner or User Access Administrator)
 
 Scans All or select subscriptions for RBAC roles assigned with Conditions
@@ -18,7 +18,6 @@ Select Subscription scanned in Tenant using -subscriptionID
 -subscriptionID "subscriptionID" 
 -OutputDirectory "c:\temp\"
 
-Change : *AnyOfAnyValues* to *AnyOfAnyValues:GuidNotEquals*
 
 #>
 
@@ -62,7 +61,7 @@ foreach ($subitem in $subscriptions)
         {
             foreach ($conditionItem in $condition)
             {
-                $RoleAnyOfAny2 =  $conditionItem | where-object{$_.condition -like "*AnyOfAnyValues:GuidNotEquals*"}
+                $RoleAnyOfAny2 =  $conditionItem | where-object{$_.condition -like "*AnyOfAny*"}
                 $rbacroles += New-Object Object |
                                 Add-Member -NotePropertyName TenantName -NotePropertyValue $tenantName -PassThru |
                                 Add-Member -NotePropertyName TenantId -NotePropertyValue $tenantid -PassThru |

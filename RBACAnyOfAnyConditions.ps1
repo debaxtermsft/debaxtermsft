@@ -7,13 +7,13 @@ Scans All or select subscriptions for RBAC roles assigned with Conditions
 FileName is automatically created based on selection, time and date
 
 All Subscriptions scanned in Tenant using -Allsubs All
-.\rbaccondition.ps1 -tenandID "tenantID" -AllSubs All -OutputDirectory "c:\temp\""
+.\rbacAnyofANyConditions.ps1 -tenandID "tenantID" -AllSubs All -OutputDirectory "c:\temp\""
 -tenandID "tenantID" 
 -AllSubs All
 -OutputDirectory c:\temp\ 
 
 Select Subscription scanned in Tenant using -subscriptionID 
-.\rbaccondition.ps1 -tenandID "tenantID" -subscriptionID "subscriptionID" -OutputDirectory "c:\temp\"
+.\rbacAnyofANyConditions.ps1 -tenandID "tenantID" -subscriptionID "subscriptionID" -OutputDirectory "c:\temp\"
 -tenandID "tenantID" 
 -subscriptionID "subscriptionID" 
 -OutputDirectory "c:\temp\"

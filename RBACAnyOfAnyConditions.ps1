@@ -27,7 +27,7 @@ param([parameter(mandatory)][string] $tenandID,
             [parameter(mandatory)] [string]$OutputDirectory)
 try
 {
-    get-azdomain -ErrorAction stop >$null
+    get-azuser -ErrorAction stop >$null
 }
 catch
 {

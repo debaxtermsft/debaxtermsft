@@ -6,13 +6,13 @@ checks if token retrieval or secret get is 200 OK, 429 throttled is hit (you can
 
 #>
 
-token=$(curl --write-out %{http_code} -f -v -D headers.txt -s 'http://169.254.169.254/metadata/identity/oauth2/token1?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | awk -F"[{,\":}]" '{print $6}')
+token=$(curl --write-out %{http_code} -f -v -D headers.txt -s 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net' -H Metadata:true | awk -F"[{,\":}]" '{print $6}')
 
 
 httpStatus=$(head -1 headers.txt | awk '{print $2}')
 if [ "$httpStatus" -eq "200" ]; then
     echo "Token Retrieval worked - HTTP STATUS $httpStatus"
-    pwd=$(curl --write-out %{http_code} -f -D headers2.txt -s "https://spnkeyvault1.vault.azure.net/secrets/spntest1?api-version=2016-10-01" -H "Authorization: Bearer ${token}" | jq -r ".value")
+    pwd=$(curl --write-out %{http_code} -f -D headers2.txt -s "https://YOURKeyvvault1.vault.azure.net/secrets/secretname1?api-version=2016-10-01" -H "Authorization: Bearer ${token}" | jq -r ".value")
     httpGetSecret=$(head -1 headers2.txt | awk '{print $2}')
     if [ "$httpGetSecret" -eq "200" ]; then
       echo "Secret Lookup worked - HTTP STATUS $httpGetSecret secret $pwd" 

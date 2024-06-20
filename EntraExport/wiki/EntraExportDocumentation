@@ -1,0 +1,11 @@
+Export Entra Documentation to follow soon
+
+Export-EntraAdminRoles.ps1
+Export-EntraAppOauthPermissionsGrant.ps1
+Export-EntraAuthMethods.ps1
+Export-EntraDeletedObjects.ps1
+Export-EntraGroupAttributes.ps1
+Export-EntraGroupMembership.ps1
+Export-EntraPIMAADRoles.ps1
+Export-EntraPIMRBACRoles.ps1
+Export-EntraRBACRoles.ps1

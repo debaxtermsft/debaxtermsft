@@ -129,8 +129,8 @@ foreach($item in $regSettings)
     }
 }
 if($GoodEntry -ne $null){
-    write-host "Reigstry Entries are Correct for TLS 1.2"
+    write-host "Registry Entries are Correct for TLS 1.2"
 $goodEntry | Format-Table | Out-String|% {Write-Host $_  -ForegroundColor Green -BackgroundColor Black }}
 if($badEntry -ne $null){
-    write-host "Reigstry Entries are NOT Correct for TLS 1.2"
+    write-host "Registry Entries are NOT Correct for TLS 1.2, please rerun TLS 1.2 enablement script"
 $badEntry | Format-Table | Out-String|% {Write-Host $_  -ForegroundColor Red -BackgroundColor Black }}

@@ -134,9 +134,7 @@ function select-directory([string] $initialDirectory, $filename)
         return $x
     } 
 
-#Connect-MgGraph -Scopes "group.read.all, directory.read.all, group.readwrite.all, groupmember.read.all, groupmember.readwrite.all,AuditLog.Read.All"
 Connect-MgGraph -Scopes "directory.read.all"
-Select-MgProfile -Name "beta"
 
 $skus1 = Get-MgSubscribedSku -All | Sort-Object SkuPartNumber
 

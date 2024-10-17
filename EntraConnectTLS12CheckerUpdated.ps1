@@ -1,6 +1,7 @@
 <# 
 Written by Derrick Baxter 10.1.24
 
+
 Updated Version of the TLS checker with Visuals (green pass/red failed)
 https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/reference-connect-tls-enforcement#powershell-script-to-check-tls-12
 #>

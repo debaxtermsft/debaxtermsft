@@ -13,6 +13,7 @@ newsecret GT1YearDaySecretExpiry 1/3/2026 8:03:11 PM   KeyVault1
 new21424  GT1YearDaySecretExpiry 2/15/2026 9:24:49 PM  KeyVault1
 
 #>#>
+
 $kvnames = get-azkeyvault
 $NearExpirationSecrets = @()
 foreach($rgitem in $kvnames)
@@ -43,6 +44,10 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                         Category       = 'GT1YearDaySecretExpiry';
                                         KeyVaultName   = $KeyVault.VaultName;
                                         ExpirationDate = $secret.Expires;
+                                        Created         = $secret.created;
+                                        Updated        = $secret.Updated;
+                                        Notbefore      = $secret.NotBefore;
+                                        id             =$secret.Id
                                     }
     
                         }  
@@ -54,6 +59,10 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                     Category       = '180-360DaySecretExpiry';
                                     KeyVaultName   = $KeyVault.VaultName;
                                     ExpirationDate = $secret.Expires;
+                                    Created         = $secret.created;
+                                    Updated        = $secret.Updated;
+                                    Notbefore      = $secret.NotBefore;
+                                    id             =$secret.Id
                                 }
 
                     }  
@@ -64,6 +73,10 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                     Category       = '60-180DaySecretExpiry';
                                     KeyVaultName   = $KeyVault.VaultName;
                                     ExpirationDate = $secret.Expires;
+                                    Created         = $secret.created;
+                                    Updated        = $secret.Updated;
+                                    Notbefore      = $secret.NotBefore;
+                                    id             =$secret.Id
                                 }
 
                     }  
@@ -74,6 +87,10 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                         Category       = '30-60DaySecretExpiry';
                                         KeyVaultName   = $KeyVault.VaultName;
                                         ExpirationDate = $secret.Expires;
+                                        Created         = $secret.created;
+                                        Updated        = $secret.Updated;
+                                        Notbefore      = $secret.NotBefore;
+                                        id             =$secret.Id
                                     }
     
                         }  
@@ -84,6 +101,10 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                         Category       = '15-30DaySecretExpiry';
                                         KeyVaultName   = $KeyVault.VaultName;
                                         ExpirationDate = $secret.Expires;
+                                        Created         = $secret.created;
+                                        Updated        = $secret.Updated;
+                                        Notbefore      = $secret.NotBefore;
+                                        id             =$secret.Id
                                     }
     
                         }
@@ -94,6 +115,10 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                         Category       = '7-15DaySecretExpiry';
                                         KeyVaultName   = $KeyVault.VaultName;
                                         ExpirationDate = $secret.Expires;
+                                        Created         = $secret.created;
+                                        Updated        = $secret.Updated;
+                                        Notbefore      = $secret.NotBefore;
+                                        id             =$secret.Id
                                     }
     
                         }
@@ -104,6 +129,10 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                         Category       = '1-7DaySecretExpiry';
                                         KeyVaultName   = $KeyVault.VaultName;
                                         ExpirationDate = $secret.Expires;
+                                        Created         = $secret.created;
+                                        Updated        = $secret.Updated;
+                                        Notbefore      = $secret.NotBefore;
+                                        id             =$secret.Id
                                     }
     
                         }                      
@@ -114,6 +143,11 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
                                     Category       = 'SecretExpired';
                                     KeyVaultName   = $KeyVault.VaultName;
                                     ExpirationDate = $secret.Expires;
+                                    Created         = $secret.created;
+                                    Updated        = $secret.Updated;
+                                    Notbefore      = $secret.NotBefore;
+                                    id             =$secret.Id
+
                                 }
 
                     }
@@ -122,4 +156,4 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
     }
 }
 
-$NearExpirationSecrets | Sort-Object  expirationdate, category
+$NearExpirationSecrets | Sort-Object  expirationdate, category  | ft -autosize

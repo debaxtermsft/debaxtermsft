@@ -41,7 +41,7 @@ try
 catch
 {
     Update-AzConfig -EnableLoginByWam $false
-    Connect-AzAccount -tenantid $tenantid -informationaction ignore -WarningAction Ignore
+    Connect-AzAccount -tenant $tenandID -WarningAction Ignore
 }
 
 $id = @()

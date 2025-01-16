@@ -15,11 +15,19 @@
 # PII can and most likely will be included, make sure your local laws are enforced
 # written by debaxter@microsoft.com
 
+NOTE: Output Directory MUST be followed with a backslash ie c:\temp\ NOT c:\temp
+
 Example : 1 subscription Check
 .\CLI_RBAC_Export_V4.ps1 -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\" -subscriptionID "SubscriptionID"
 
 Example : 2 All RBAC for All Subscriptions 
 .\CLI_RBAC_Export_V4.ps1 -AllSubs All -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\"
+
+Example : 3 ObjectID search for all Subscriptions
+.\CLI_RBAC_Export_V4.ps1  -tenandID "tenantid" -mainmenu ObjectID -ObjectID "ObjectID GUID" -AllSubs All -Outputdirectory "c:\temp\" -scope RoleDefinitionName
+
+Example : 4 Object search on single subscription
+.\CLI_RBAC_Export_V4.ps1  -tenandID "tenantID" -mainmenu ObjectID -ObjectID "ObjectID GUID" -subscriptionID "subscriptionID" -Outputdirectory "c:\temp\" -scope RoleDefinitionName
 #######################>
 
 
@@ -27,7 +35,8 @@ Example : 2 All RBAC for All Subscriptions
 param([parameter(mandatory)][string] $tenandID,
             [parameter (mandatory=$false)][validateset("All")] [string]$AllSubs,
             [parameter(mandatory=$false)][string]$subscriptionID,  
-            [parameter(mandatory)][validateset("All RBAC","All Users","All Groups", "All Service Principals", "Identity Unknown", "InheritanceCheck", "Cancel")][string] $mainmenu,
+            [parameter(mandatory=$false)][string]$ObjectID,
+            [parameter(mandatory)][validateset("ObjectID", "All RBAC","All Users","All Groups", "All Service Principals", "Identity Unknown", "InheritanceCheck", "Cancel")][string] $mainmenu,
             [parameter(mandatory)][validateset("DisplayName","Scope","RoleDefinitionName")] [string]$scopetype,
           #[parameter(mandatory)][validateset("All","Azure","Office")] [string]$SorOGroup,
             [parameter(mandatory)] [string]$Outputdirectory)
@@ -41,7 +50,8 @@ try
 catch
 {
     Update-AzConfig -EnableLoginByWam $false
-    Connect-AzAccount -tenant $tenandID -WarningAction Ignore
+	write-host $tenandID "tenantid"
+    Connect-AzAccount -tenant $tenandID -WarningAction Ignore # -informationaction ignore 
 }
 
 $id = @()
@@ -55,6 +65,8 @@ if($AllSubs -eq "All")
 else
 {
     $subscription = $subscriptionID
+    write-host "Subscriptions Accessible w Current User Signed In, Check your RBAC Roles if any are missing"
+    $subscription 
 }
 $list =@()
 $file =@()
@@ -99,6 +111,11 @@ $rbacrolelist =@()
                 {
                     $objecttype = "Unknown"
                     $list = get-azroleassignment  | Where-Object {$_.displayname -eq $null -and $_.SignInName -eq $null}
+                }
+                "ObjectID"
+                {
+                    $objecttype = "ObjectId"
+                    $list = get-azroleassignment  | Where-Object {$_.objectid -eq $ObjectId}
                 }
                 "InheritanceCheck"
                 {

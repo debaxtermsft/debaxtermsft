@@ -1,4 +1,4 @@
-#######################
+<#######################
 # updated 1/16/25 module changes required updating
 #the below script uses the AZ powershell module pulling all roleassignments for groups
 # Version 1 CLI 
@@ -20,7 +20,7 @@ Example : 1 subscription Check
 
 Example : 2 All RBAC for All Subscriptions 
 .\CLI_RBAC_Export_V4.ps1 -AllSubs All -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\"
-#######################
+#######################>
 
 
 

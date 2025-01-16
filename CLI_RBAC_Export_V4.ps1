@@ -16,10 +16,10 @@
 # written by debaxter@microsoft.com
 
 Example : 1 subscription Check
-.\CLI_RBAC_Export_V4.ps1 -tenandID <tenantid> -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\" -subscriptionID <SubscriptionID>
+.\CLI_RBAC_Export_V4.ps1 -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\" -subscriptionID "SubscriptionID"
 
 Example : 2 All RBAC for All Subscriptions 
-.\CLI_RBAC_Export_V4.ps1 -AllSubs All -tenandID <tenantid> -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\"
+.\CLI_RBAC_Export_V4.ps1 -AllSubs All -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\"
 #######################
 
 

@@ -4,12 +4,15 @@
 # Version 1 CLI 
 # CLI driven
 # .\CLI_Export_RBAC.ps1 
-#-mainmenu 'All RBAC, All Groups, All Users, All Service Principals or Identity Unknown"
+# -mainmenu 'All RBAC, All Groups, All Users, All Service Principals or Identity Unknown"
 # -tenandID "your tenant id" 
+# -IsCustom ALL, BuiltIn, or IsCustom
 # not manditory -AllSubs All (will get all subs in the tenants entered)
 # -subscriptionID "subscriptionid" 
 # -scopetype DisplayName, scope, roledefinition name sorting
 # -Outputdirectory "your destination directory
+# -ObjectId "ObjectId"
+
 # filename will be created for you by the selections + time and date (should be impossible to overwrite) 
 # File will be named $Outputdirectory+"_" +$tenandID+"_" +$subscriptionselected.id+"_" +$mainmenu+"_" + $tenandID+"_" +$subscriptionselected.id+"_" +$scope+"_" +$tdy+".csv"
 # PII can and most likely will be included, make sure your local laws are enforced
@@ -18,16 +21,18 @@
 NOTE: Output Directory MUST be followed with a backslash ie c:\temp\ NOT c:\temp
 
 Example : 1 subscription Check
-.\CLI_RBAC_Export_V4.ps1 -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\" -subscriptionID "SubscriptionID"
+.\CLI_RBAC_Export_V4.ps1 -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\" -subscriptionID "SubscriptionID" -iscustom All
 
 Example : 2 All RBAC for All Subscriptions 
-.\CLI_RBAC_Export_V4.ps1 -AllSubs All -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\"
+.\CLI_RBAC_Export_V4.ps1 -AllSubs All -tenandID "tenantid" -mainmenu 'All RBAC' -scopetype Scope -Outputdirectory "c:\temp\" -iscustom All
 
 Example : 3 ObjectID search for all Subscriptions
-.\CLI_RBAC_Export_V4.ps1  -tenandID "tenantid" -mainmenu ObjectID -ObjectID "ObjectID GUID" -AllSubs All -Outputdirectory "c:\temp\" -scope RoleDefinitionName
 
+.\CLI_RBAC_Export_V5.ps1 -tenandID "tenantID" -mainmenu ObjectID -ObjectID "ObjectID GUID" -scopetype DisplayName -Outputdirectory "c:\temp\" -RoleDefinitionType IsCustom -AllSubs All
 Example : 4 Object search on single subscription
-.\CLI_RBAC_Export_V4.ps1  -tenandID "tenantID" -mainmenu ObjectID -ObjectID "ObjectID GUID" -subscriptionID "subscriptionID" -Outputdirectory "c:\temp\" -scope RoleDefinitionName
+
+.\CLI_RBAC_Export_V5.ps1 -tenandID "Tenantid"" -mainmenu ObjectID -ObjectID "ObjectID" -scopetype DisplayName -Outputdirectory "c:\temp\" -subscriptionID "subscriptionIS" -RoleDefinitionType IsCustom
+
 #######################>
 
 

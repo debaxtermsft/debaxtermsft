@@ -141,6 +141,7 @@ $rbacrolelist =@()
                     $rbacroles=@()
                        foreach ($listitem in $rbacrolelist )
                        {
+                        $IsCustom = (Get-AzRoleDefinition -id $listitem.RoleDefinitionId).IsCustom
                         $rbacroles += New-Object Object |
                                         Add-Member -NotePropertyName DisplayName -NotePropertyValue $listitem.DisplayName -PassThru |
                                         Add-Member -NotePropertyName ObjectId -NotePropertyValue $listitem.ObjectID -PassThru |
@@ -149,7 +150,8 @@ $rbacrolelist =@()
                                         Add-Member -NotePropertyName RoleDefinitionName -NotePropertyValue $listitem.RoleDefinitionName -PassThru |
                                         Add-Member -NotePropertyName Scope -NotePropertyValue $listitem.Scope -PassThru |
                                         Add-Member -NotePropertyName RoleDefinitionID -NotePropertyValue $listitem.RoleDefinitionId -PassThru |
-                                        Add-Member -NotePropertyName RoleAssignmentID -NotePropertyValue $listitem.RoleAssignmentId -PassThru
+                                        Add-Member -NotePropertyName RoleAssignmentID -NotePropertyValue $listitem.RoleAssignmentId -PassThru |
+                                        Add-Member -NotePropertyName RoleDefinitionIsCustom -NotePropertyValue $IsCustom -PassThru 
                         }
                 }
         $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"

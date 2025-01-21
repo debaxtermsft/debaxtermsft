@@ -98,30 +98,32 @@ $rbacrolelist =@()
                 {
                     $objecttype = "Group"
 
-                    $list = get-azroleassignment | Where-Object {$_.ObjectType -eq $objecttype}  
+                    $list += get-azroleassignment | Where-Object {$_.ObjectType -eq $objecttype}  
                 }
                 # gets all User role assignments
                 "All Users"
                 {
                     $objecttype = "User"
-                    $list = get-azroleassignment  | Where-Object {$_.ObjectType -eq $objecttype -and $_.SignInName -ne $null} 
+                    $list += get-azroleassignment  | Where-Object {$_.ObjectType -eq $objecttype -and $_.SignInName -ne $null} 
                 }
                 # gets all ServicePrincipal role assignments
                 "All Service Principals"
                 {
                     $objecttype = "ServicePrincipal"
-                    $list = get-azroleassignment  | Where-Object {$_.ObjectType -eq $objecttype} 
+                    $list += get-azroleassignment  | Where-Object {$_.ObjectType -eq $objecttype} 
                 }
                 # gets all Identity Unknown role assignments - Either User, Group, SPN was deleted
                 "Identity Unknown"
                 {
                     $objecttype = "Unknown"
-                    $list = get-azroleassignment  | Where-Object {$_.displayname -eq $null -and $_.SignInName -eq $null}
+                    $list += get-azroleassignment  | Where-Object {$_.displayname -eq $null -and $_.SignInName -eq $null}
                 }
                 "ObjectID"
                 {
+                    write-host "in Objectid"
                     $objecttype = "ObjectId"
-                    $list = get-azroleassignment  | Where-Object {$_.objectid -eq $ObjectId}
+                    $list += get-azroleassignment -ObjectId  $ObjectId
+                    $list
                 }
                 "InheritanceCheck"
                 {

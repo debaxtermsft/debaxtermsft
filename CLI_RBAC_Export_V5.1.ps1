@@ -42,8 +42,8 @@ param([parameter(mandatory)][string] $tenandID,
             [parameter(mandatory=$false)][string]$subscriptionID,  
             [parameter(mandatory=$false)][string]$ObjectID,
             [parameter(mandatory)][validateset("ObjectID", "All RBAC","All Users","All Groups", "All Service Principals", "Identity Unknown", "InheritanceCheck", "Cancel")][string] $mainmenu,
-            [parameter(mandatory)][validateset("DisplayName","Scope","RoleDefinitionName")] [string]$scopetype,
-            [parameter(mandatory)][validateset("BuiltIn", "IsCustom", "All")] [string]$RoleDefinitionType,
+            [parameter(mandatory=$false)][validateset("DisplayName","Scope","RoleDefinitionName")] [string]$scopetype = "DisplayName",
+            [parameter(mandatory=$false)][validateset("BuiltIn", "IsCustom", "All")] [string]$RoleDefinitionType = "All",
           #[parameter(mandatory)][validateset("All","Azure","Office")] [string]$SorOGroup,
             [parameter(mandatory)] [string]$Outputdirectory)
 $WarningPreference = "SilentlyContinue"    
@@ -199,7 +199,7 @@ $rbacrolelist =@()
 
                         }
                 }
-        if ($rbacroles -eq $null)
+        if (!$rbacroles)
         {
         write-host "No RBAC Roles Found in Subscription" 
         }

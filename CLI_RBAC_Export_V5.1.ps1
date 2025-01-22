@@ -81,6 +81,7 @@ $rbacrolelist =@()
     foreach ($subscriptionselected in $subscription)
         {
             $file = $mainmenu
+            $list =@()
             write-host "Scanning RBAC Roles in Subscription : " $subscriptionselected
             Set-AzContext -Subscription $subscriptionselected #-Tenant $subselectect.TenantId
             switch -exact ($mainmenu) 

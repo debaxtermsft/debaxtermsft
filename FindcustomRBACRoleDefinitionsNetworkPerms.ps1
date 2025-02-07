@@ -21,6 +21,11 @@ param([parameter(mandatory)][string] $tenandID,
             [parameter(mandatory)] [string]$Outputdirectory)
 $WarningPreference = "SilentlyContinue"    
 
+$resourceperms = import-csv -Path "$ImportPermsFile" -Encoding utf8
+if(!$resourceperms)
+{write-host "perms file didn't load"
+ break}
+
 #logging into az
 try
 {
@@ -49,7 +54,9 @@ else
 }
 
 
-$resourceperms = import-csv -Path "$ImportPermsFile" -Encoding utf8
+
+
+
 write-host "resource Perm 0 to check it loaded" $resourceperms[0]
 foreach ($subscriptionselected in $subscription)
 {
@@ -108,6 +115,6 @@ $ResourceCustomroles
     $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
     $file = $Outputdirectory + $tenandID+"_" + $subscriptionselected +"_" +$tdy+".csv"
 
-    $ResourceCustomroles | export-csv -path $file -NoTypeInformation -Encoding utf8
+    $ResourceCustomroles | Sort-Object Name | export-csv -path $file -NoTypeInformation -Encoding utf8
     }
 }

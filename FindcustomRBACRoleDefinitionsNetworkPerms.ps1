@@ -115,6 +115,6 @@ $ResourceCustomroles
     $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
     $file = $Outputdirectory + $tenandID+"_" + $subscriptionselected +"_" +$tdy+".csv"
 
-    $ResourceCustomroles | Sort-Object Name | export-csv -path $file -NoTypeInformation -Encoding utf8
+    $ResourceCustomroles | Sort-Object Name -Unique | export-csv -path $file -NoTypeInformation -Encoding utf8
     }
 }

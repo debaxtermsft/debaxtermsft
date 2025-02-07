@@ -44,13 +44,13 @@ if($AllSubs -eq "All")
     $subscriptionALL = Get-AzSubscription
     $subscription = ($subscriptionALL | where-object{$_.tenantid -eq $tenandID}).Id
     write-host "Subscriptions Accessible w Current User Signed In, Check your RBAC Roles if any are missing"
-    $subscription 
+    #$subscription 
 }
 else
 {
     $subscription = $subscriptionID
     write-host "Subscriptions Accessible w Current User Signed In, Check your RBAC Roles if any are missing"
-    $subscription 
+    #$subscription 
 }
 
 
@@ -91,7 +91,7 @@ foreach ($subscriptionselected in $subscription)
             [string]$notdataaction1 = $founditem.NotDataactions
             [string]$assignablescopes1 = $founditem.AssignableScopes
             [string]$condition1 = $founditem.condition
-            [string]$conditionversion1 = $founditem.ConditionVersion
+            [string]$conditionversion1 = $founditem.ConditionVersion 
 
             $ResourceCustomroles += New-Object Object |
                 Add-Member -NotePropertyName Name -NotePropertyValue $founditem.Name -PassThru |
@@ -106,7 +106,7 @@ foreach ($subscriptionselected in $subscription)
                 Add-Member -NotePropertyName Condition -NotePropertyValue $condition1 -PassThru |
                 Add-Member -NotePropertyName ConditionVersion -NotePropertyValue $conditionversion1 -PassThru 
         }
-$ResourceCustomroles
+#$ResourceCustomroles
     if (!$ResourceCustomroles)
     {
     write-host "No Custom Resource  Roles Found in Subscription Selected " $subscriptionselected

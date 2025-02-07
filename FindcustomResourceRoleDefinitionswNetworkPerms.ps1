@@ -1,8 +1,8 @@
 <#
 Written by Derrick Baxter 2/5/25
 
-Check all custom AAD Role definitions for possible permissions issue that needs updated.
-Download the aadperms.csv from github in the same directory
+Check all custom Resource Role definitions for possible permissions issue that needs updated.
+Download the resourceperms.csv from github in the same directory
 
 Using Az Powershell module
 
@@ -11,7 +11,7 @@ only required options are -tenantid and -outputdirectory MUST HAVE trailing \  e
 allsubs option ALL - scans all subs YOU have permissions to view (owner, contributor or UAA)
 -subscriptionid "subguid" to scan only 1 subscription
 
--importpermfile FULL DIRECTORY and FILE "c:\temp\aadperms.csv"
+-importpermfile FULL DIRECTORY and FILE "c:\temp\resourceperms.csv"
 #>
 
 param([parameter(mandatory)][string] $tenandID,
@@ -49,8 +49,8 @@ else
 }
 
 
-$aadperms = import-csv -Path "$ImportPermsFile" -Encoding utf8
-write-host "aadperm 0 to check it loaded" $aadperms[0]
+$resourceperms = import-csv -Path "$ImportPermsFile" -Encoding utf8
+write-host "resource Perm 0 to check it loaded" $resourceperms[0]
 foreach ($subscriptionselected in $subscription)
 {
             $file = $mainmenu
@@ -62,13 +62,13 @@ foreach ($subscriptionselected in $subscription)
         $customroledefinitions = Get-AzRoleDefinition -Custom
 
         $foundNetworkRD = @()
-        $AADCustomroles = @()
+        $ResourceCustomroles = @()
 
 
         foreach ($item in $customroledefinitions)
         {
         #    write-host "searching actions in " $item.name
-            foreach ($itemperm in $aadperms)
+            foreach ($itemperm in $resourceperms)
             {
                 [string]$perm = $itemperm.permissions
         #        write-host "perm search for " $perm
@@ -86,7 +86,7 @@ foreach ($subscriptionselected in $subscription)
             [string]$condition1 = $founditem.condition
             [string]$conditionversion1 = $founditem.ConditionVersion
 
-            $AADCustomroles += New-Object Object |
+            $ResourceCustomroles += New-Object Object |
                 Add-Member -NotePropertyName Name -NotePropertyValue $founditem.Name -PassThru |
                 Add-Member -NotePropertyName Id -NotePropertyValue $founditem.Id -PassThru |
                 Add-Member -NotePropertyName IsCustom -NotePropertyValue $founditem.IsCustom -PassThru |
@@ -99,15 +99,15 @@ foreach ($subscriptionselected in $subscription)
                 Add-Member -NotePropertyName Condition -NotePropertyValue $condition1 -PassThru |
                 Add-Member -NotePropertyName ConditionVersion -NotePropertyValue $conditionversion1 -PassThru 
         }
-$AADCustomroles
-    if (!$AADCustomroles)
+$ResourceCustomroles
+    if (!$ResourceCustomroles)
     {
-    write-host "No Custom AAD Roles Found in Subscription Selected " $subscriptionselected
+    write-host "No Custom Resource  Roles Found in Subscription Selected " $subscriptionselected
     }
     else {
     $tdy = get-date -Format "MM-dd-yyyy hh.mm.ss"
     $file = $Outputdirectory + $tenandID+"_" + $subscriptionselected +"_" +$tdy+".csv"
 
-    $AADCustomroles | export-csv -path $file -NoTypeInformation -Encoding utf8
+    $ResourceCustomroles | export-csv -path $file -NoTypeInformation -Encoding utf8
     }
 }

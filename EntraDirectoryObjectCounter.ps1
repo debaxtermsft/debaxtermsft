@@ -106,7 +106,36 @@ $DirectoryObjectCount           += New-Object Object |
 
 $tdy                            = get-date -Format "MM-dd-yyyy hh.mm.ss"
 $file                           = $outputdirectory +"EntraDirectoryQuota_and_objectcounter_"+$tdy+".csv"
+$htmlfile                           = $outputdirectory +"EntraDirectoryQuota_and_objectcounter_"+$tdy+".html"
+
 $DirectoryObjectCount | export-csv -path $file -NoTypeInformation -Encoding UTF8
+
+$cssStyle = @"
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    th {
+        background-color: #4CAF50;
+        color: white;
+    }
+</style>
+"@
+
+$htmlfileoutput = "C:\temp\tenantquotaoutput.html"
+$htmlContent = $DirectoryObjectCount | ConvertTo-Html -Title "My Data" -As "Table"
+$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
+$htmlContent | Out-File $htmlfile
+
 #Rem out the display of the variable if you do not want to have this exported to the screen
 $DirectoryObjectCount | FT
 $DirectoryObjectCount | FL

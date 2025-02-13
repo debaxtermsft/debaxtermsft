@@ -64,7 +64,7 @@ catch{break}
 
 if($groupquestion -eq "All")
 {
-   $users = get-mguser -top 15 | Select-Object displayname, id | Sort-Object displayname
+   $users = get-mguser -all | Select-Object displayname, id | Sort-Object displayname
 }
 else
 {

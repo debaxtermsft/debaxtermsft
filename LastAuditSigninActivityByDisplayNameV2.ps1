@@ -1,7 +1,8 @@
 <# 
 Written by Derrick Baxter
 4/19/2023
-updated w html formatting and single user selection
+
+2/13/25 updated w html formatting and single user selection
 
 CSV output
 .\LastSigninActivity.ps1 -tenandID <guid> -groupquestion All -Outputdirectory "c:\temp\" -ExportFileType CSV

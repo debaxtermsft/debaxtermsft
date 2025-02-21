@@ -13,6 +13,7 @@ newsecret GT1YearDaySecretExpiry 1/3/2026 8:03:11 PM   KeyVault1
 new21424  GT1YearDaySecretExpiry 2/15/2026 9:24:49 PM  KeyVault1
 
 #>#>
+connect-azaccount 
 
 $kvnames = get-azkeyvault
 $NearExpirationcerts = @()
@@ -156,3 +157,33 @@ $KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultNa
 }
 
 $NearExpirationcerts | Sort-Object  expirationdate, category  | ft -autosize
+
+$tdy                            = get-date -Format "MM-dd-yyyy hh.mm.ss"
+$file                           = $outputdirectory +"EntraDirectoryQuota_and_objectcounter_"+$tdy+".csv"
+$htmlfile                           = $outputdirectory +"EntraDirectoryQuota_and_objectcounter_"+$tdy+".html"
+
+$cssStyle = @"
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    th {
+        background-color: #4CAF50;
+        color: white;
+    }
+</style>
+"@
+
+$htmlfileoutput = "C:\temp\keyvaultexpireyCSK.html"
+$htmlContent = $NearExpirationcerts | Sort-Object  expirationdate, category | ConvertTo-Html -Title "My Data" -As "Table"
+$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
+$htmlContent | Out-File $htmlfileoutput

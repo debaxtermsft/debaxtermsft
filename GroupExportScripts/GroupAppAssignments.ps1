@@ -1,6 +1,6 @@
 <# Written by Derrick Baxter debaxter@microsoft.com
 the below script uses the Azure Graph powershell module to retrieve Groups assigned to applications
-
+(THESE SAVE PII, make sure you save them based on your Country/State/Local Laws)
  2/21/25
  Derrick J. Baxter
 

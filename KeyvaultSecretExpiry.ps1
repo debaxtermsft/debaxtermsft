@@ -13,7 +13,7 @@ newsecret GT1YearDaySecretExpiry 1/3/2026 8:03:11 PM   KeyVault1
 new21424  GT1YearDaySecretExpiry 2/15/2026 9:24:49 PM  KeyVault1
 
 #>#>
-
+connect-azaccount 
 $kvnames = get-azkeyvault
 $NearExpirationSecrets = @()
 foreach($rgitem in $kvnames)

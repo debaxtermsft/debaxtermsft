@@ -2,7 +2,7 @@
 the below script uses the Azure Graph powershell module to retrieve Groups Attributes (needed to recreate a security group or any group)
  2/21/25
  Derrick J. Baxter
-
+(THESE SAVE PII, make sure you save them based on your Country/State/Local Laws)
  Group Members/Group Attributes
  Group Members and Group Attributes filter1- All/Assigned/Dynamic
  Group Members - All (gets all group members of all Groups)

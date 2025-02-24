@@ -53,6 +53,16 @@ param([parameter(Position=0,mandatory)][validateset("All","Group ObjectID")] [st
         [parameter (Position=5,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
         [parameter(Position=4,mandatory)] [string]$Outputdirectory)
 
+
+If($GroupOption -eq "All")
+    {
+        $file = "GroupAttributeExport_" + $groupoption + "_" + $GroupTypeFilter + "_" + $SecurityofOfficeGroup + "_" 
+    }
+else 
+    {
+        $file = "GroupAttributeExport_" + $groupoption + "_" + $GroupObjectID + "_" + $GroupTypeFilter + "_" + $SecurityofOfficeGroup + "_" 
+    }
+        
 try
     {
     Get-MGDomain -ErrorAction Stop > $null
@@ -157,12 +167,12 @@ if($GroupOption -eq "All")
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
 if($ExportFileType -eq "CSV")
 {
-$outputfile = $Outputdirectory + "GroupAttributes_"+$tdy+".csv"
+$outputfile = $Outputdirectory + $file +$tdy+".csv"
 $GAs | sort-object Group_DisplayName | export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
 }
 else
 {
-$htmlfile = $Outputdirectory + "GroupsAttributes_"+$tdy+".html"
+$htmlfile = $Outputdirectory + $file +$tdy+".html"
 
 $cssStyle = @"
 <style>

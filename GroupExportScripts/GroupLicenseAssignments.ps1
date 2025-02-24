@@ -56,6 +56,15 @@ param([parameter(Position=0,mandatory)][validateset("All","Group ObjectID")] [st
 [parameter (Position=2,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
 [parameter(Position=3,mandatory)] [string]$Outputdirectory)
 
+If($GroupOption -eq "All")
+    {
+        $file = "GroupAssignedLicenseExport_" + $groupoption + "_" 
+    }
+else 
+    {
+        $file = "GroupAssignedLicenseExport_" + $groupoption + "_" + $GroupObjectID + "_" 
+    }
+
 try
     {
     Get-MGDomain -ErrorAction Stop > $null
@@ -260,12 +269,12 @@ $sortedfinal = @()
 $sortedfinal = $FinalSkuobject | Sort-Object DisabledServicePlanName -Unique
 if($ExportFileType -eq "CSV")
 {
-$outputfile = $Outputdirectory + "GroupLicenseAssignments_"+$tdy+".csv"
+$outputfile = $Outputdirectory + $file +$tdy+".csv"
 $sortedfinal | sort-object GroupName,SKUPartNumber| export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
 }
 else
 {
-$htmlfile = $Outputdirectory + "GroupLicenseAssignments_"+$tdy+".html"
+$htmlfile = $Outputdirectory + $file +$tdy+".html"
 
 $cssStyle = @"
 <style>

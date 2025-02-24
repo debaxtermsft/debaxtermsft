@@ -51,6 +51,14 @@ param([parameter(Position=0,mandatory)][validateset("All","Group ObjectID")] [st
 [parameter(Position=1,mandatory=$false)][string]$GroupObjectID,
 [parameter (Position=2,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
 [parameter(Position=3,mandatory)] [string]$Outputdirectory)
+If($GroupOption -eq "All")
+{
+    $file = "GroupAppAssignmentExport_" + $groupoption + "_"
+}
+else 
+{
+    $file = "GroupAppAssignmentExport_" + $groupoption + "_" + $GroupObjectID + "_"
+}
 
 try
     {
@@ -95,12 +103,12 @@ catch
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
 if($ExportFileType -eq "CSV")
 {
-    $outputfile = $Outputdirectory + "GroupAssignedApplications_"+$tdy+".csv"
+    $outputfile = $Outputdirectory + $file+$tdy+".csv"
     $Gapps | sort-object Group_DisplayName ,PrincipalDisplayName| export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
 }
 else
 {
-$htmlfile = $Outputdirectory + "GroupAssignedApplications_"+$tdy+".html"
+$htmlfile = $Outputdirectory + $file+$tdy+".html"
 
 $cssStyle = @"
 <style>

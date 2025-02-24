@@ -52,6 +52,15 @@ param([parameter(Position=0,mandatory)][validateset("All","Group ObjectID")] [st
         [parameter(Position=3,mandatory)] [string]$Outputdirectory)
 
 
+If($GroupOption -eq "All")
+    {
+        $file = "GroupCAPolicyExport_" + $groupoption + "_" 
+    }
+else 
+    {
+        $file = "GroupCAPolicyExport_" + $groupoption + "_" + $GroupObjectID + "_"
+    }
+
 try
     {
     Get-MGDomain -ErrorAction Stop > $null
@@ -132,12 +141,12 @@ if ($GroupOption -ne "All")
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
 if($ExportFileType -eq "CSV")
 {
-    $outputfile = $Outputdirectory + "GroupsConditionalAccessPolicyAssignments_"+$tdy+".csv"
+    $outputfile = $Outputdirectory + $file +$tdy+".csv"
     $CAGroupobject | sort-object "Conditional Access Policy Name","Conditional Access Policy IncludedGroups Name", "Conditional Access Policy ExcludedGroups Name"| export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
 }
 else # do not format the below, it will break CSS required formatting
 {
-$htmlfile = $Outputdirectory + "GroupsConditionalAccessPolicyAssignments_"+$tdy+".html"
+$htmlfile = $Outputdirectory + $file +$tdy+".html"
 
 $cssStyle = @"
 <style>

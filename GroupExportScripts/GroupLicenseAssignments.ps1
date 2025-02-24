@@ -291,7 +291,7 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 th {
-    background-color: #4CAF50;
+    background-color:rgb(232, 235, 49);
     color: white;
 }
 </style>

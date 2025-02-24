@@ -163,7 +163,7 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 th {
-    background-color: #4CAF50;
+    background-color:rgb(16, 29, 212);
     color: white;
 }
 </style>

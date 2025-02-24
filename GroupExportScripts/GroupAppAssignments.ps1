@@ -123,7 +123,7 @@ color: white;
 </style>
 "@
 
-$htmlContent = $Gapps | Sort-object Group_DisplayName ,PrincipalDisplayName | ConvertTo-Html -Title "Last Signin Activity by DisplayName" -As "Table"
+$htmlContent = $Gapps | Sort-object Group_DisplayName ,PrincipalDisplayName | ConvertTo-Html -Title "Group Application Assignments Export" -As "Table"
 $htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
 $htmlContent | Out-File $htmlfile
 }

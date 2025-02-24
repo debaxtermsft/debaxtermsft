@@ -249,7 +249,7 @@ th {
 </style>
 "@
 
-$htmlContent = $GMs | Sort-object GroupDisplayName,MemberDisplayName | ConvertTo-Html -Title "Last Signin Activity by DisplayName" -As "Table"
+$htmlContent = $GMs | Sort-object GroupDisplayName,MemberDisplayName | ConvertTo-Html -Title "Group Member Export" -As "Table"
 $htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
 $htmlContent | Out-File $htmlfile
 }

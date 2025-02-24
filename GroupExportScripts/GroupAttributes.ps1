@@ -153,12 +153,12 @@ if($GroupOption -eq "All")
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
 if($ExportFileType -eq "CSV")
 {
-$outputfile = $Outputdirectory + "GroupMembers_"+$tdy+".csv"
+$outputfile = $Outputdirectory + "GroupAttributes_"+$tdy+".csv"
 $GAs | sort-object Group_DisplayName | export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
 }
 else
 {
-$htmlfile = $Outputdirectory + "GroupsMembers_"+$tdy+".html"
+$htmlfile = $Outputdirectory + "GroupsAttributes_"+$tdy+".html"
 
 $cssStyle = @"
 <style>
@@ -181,7 +181,7 @@ th {
 </style>
 "@
 
-$htmlContent = $GAs | Sort-object Group_DisplayName| ConvertTo-Html -Title "Last Signin Activity by DisplayName" -As "Table"
+$htmlContent = $GAs | Sort-object Group_DisplayName| ConvertTo-Html -Title "Group Attribute Export" -As "Table"
 $htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
 $htmlContent | Out-File $htmlfile
 }

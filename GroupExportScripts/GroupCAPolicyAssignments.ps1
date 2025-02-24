@@ -155,7 +155,7 @@ th {
 </style>
 "@
 
-$htmlContent = $CAGroupobject | Sort-object "Conditional Access Policy Name","Conditional Access Policy IncludedGroups Name", "Conditional Access Policy ExcludedGroups Name" | ConvertTo-Html -Title "Last Signin Activity by DisplayName" -As "Table"
+$htmlContent = $CAGroupobject | Sort-object "Conditional Access Policy Name","Conditional Access Policy IncludedGroups Name", "Conditional Access Policy ExcludedGroups Name" | ConvertTo-Html -Title "Group CA Policy Assignments" -As "Table"
 $htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
 $htmlContent | Out-File $htmlfile
 }

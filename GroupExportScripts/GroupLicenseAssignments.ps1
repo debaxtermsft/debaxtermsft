@@ -288,7 +288,7 @@ th {
 </style>
 "@
 
-$htmlContent = $sortedfinal | Sort-object GroupName,SKUPartNumber | ConvertTo-Html -Title "Last Signin Activity by DisplayName" -As "Table"
+$htmlContent = $sortedfinal | Sort-object GroupName,SKUPartNumber | ConvertTo-Html -Title "Group License Assignements" -As "Table"
 $htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
 $htmlContent | Out-File $htmlfile
 }

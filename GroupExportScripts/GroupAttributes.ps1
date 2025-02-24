@@ -107,26 +107,30 @@ if($GroupOption -eq "All")
                     [string]$proxy = $item.ProxyAddresses
                     [string]$grouptypes = $item.grouptypes
                     [string]$labels = $item.assignedlables
-                    
-                    $GOlookup = @()
+                     
+                    $GOlookup =@()
+                    $GODNList =@()
+                    $GOID2 =@()
                     try {
                         $groupownerobjectidlookup = Get-MgGroupOwner -GroupId $item.id -ErrorAction SilentlyContinue
                         $GOID2 = $groupownerobjectidlookup.id -join ", "
-                        write-host " Owner Count " $groupownerobjectidlookup.count
+                        #write-host " Owner Count " $groupownerobjectidlookup.count
                         if ($groupownerobjectidlookup.count -ge 1){
-                            write-host "ge 1 owner"
+                            
                             foreach ($itemGO in $groupownerobjectidlookup)
                             {
                                 $GOlookup += (get-mguser -UserId $itemGO.id).DisplayName
-                                $GOlookup
+                            
                             }
                             $GODNList = $GOlookup -join ", "
                         }
-                        
-
+                        else {
+                            $GODNList = "No Owner Listed"
+                            $GOID2 = "No Onwer listed"                        }
                     }
                     catch {
                         write-host "No Group Owner Listed "
+
                     }
 
                     $GAs += New-Object Object |

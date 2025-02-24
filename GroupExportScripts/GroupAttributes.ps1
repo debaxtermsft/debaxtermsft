@@ -2,7 +2,7 @@
 the below script uses the Azure Graph powershell module to retrieve Groups Attributes (needed to recreate a security group or any group)
  2/21/25
  Derrick J. Baxter
-(THESE SAVE PII, make sure you save them based on your Country/State/Local Laws)
+
  Group Members/Group Attributes
  Group Members and Group Attributes filter1- All/Assigned/Dynamic
  Group Members - All (gets all group members of all Groups)
@@ -94,7 +94,7 @@ if($GroupOption -eq "All")
     {
         $group = get-mggroup -GroupId $GroupObjectID
     }
-    $group.count
+    #$group.count
         if(!$group)
         {
                         $groupinfo2 = "No groups"
@@ -105,11 +105,32 @@ if($GroupOption -eq "All")
                 $GAs=@()
                 foreach ($item in $group )
                 {
-                    $item 
+                    
                     [string]$proxy = $item.ProxyAddresses
                     [string]$grouptypes = $item.grouptypes
                     [string]$labels = $item.assignedlables
-                    $groupowner = Get-MgGroupOwner -GroupId $item.id
+                    
+                    $GOlookup = @()
+                    try {
+                        $groupownerobjectidlookup = Get-MgGroupOwner -GroupId $item.id -ErrorAction SilentlyContinue
+                        $GOID2 = $groupownerobjectidlookup.id -join ", "
+                        write-host " Owner Count " $groupownerobjectidlookup.count
+                        if ($groupownerobjectidlookup.count -ge 1){
+                            write-host "ge 1 owner"
+                            foreach ($itemGO in $groupownerobjectidlookup)
+                            {
+                                $GOlookup += (get-mguser -UserId $itemGO.id).DisplayName
+                                $GOlookup
+                            }
+                            $GODNList = $GOlookup -join ", "
+                        }
+                        
+
+                    }
+                    catch {
+                        write-host "No Group Owner Listed "
+                    }
+
                     $GAs += New-Object Object |
                                 Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $item.DisplayName -PassThru |
                                 Add-Member -NotePropertyName Group_Description -NotePropertyValue $item.Description -PassThru |
@@ -123,7 +144,8 @@ if($GroupOption -eq "All")
                                 Add-Member -NotePropertyName mailnickname -NotePropertyValue $item.mailnickname -PassThru |
                                 Add-Member -NotePropertyName AssignedLabels -NotePropertyValue $labels -PassThru |
                                 Add-Member -NotePropertyName MembershipRule -NotePropertyValue $item.MembershipRule -PassThru |
-                                Add-Member -NotePropertyName GroupOwner -NotePropertyValue $groupowner -PassThru 
+                                Add-Member -NotePropertyName GroupOwnerDisplayname -NotePropertyValue $GODNList -PassThru |
+                                Add-Member -NotePropertyName GroupOwnerObjecId -NotePropertyValue $GOid2 -PassThru 
 
                 } 
             

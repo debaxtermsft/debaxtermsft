@@ -66,13 +66,13 @@ catch
         #(old call)$CAs = Invoke-MgGraphRequest -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies' -method get
     if($GroupOption -eq "All")
     {
-        write-host "all"
+
         $CAs = Invoke-MgGraphRequest -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies?$filter=conditions/users/includeGroups/any() or conditions/users/excludeGroups/any()?$select=id,displayName,conditions' -Method GET
     }
     else 
     {
 #        $URI = 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies?$filter=conditions/users/includeGroups/any(g: g eq '$GroupObjectID') or conditions/users/excludeGroups/any(g: g eq '$GroupObjectID')'
-write-host "not all"
+
         $buildURIheader1 = "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies?$"
         $buildURIheader2 = "filter=conditions/users/includeGroups/any(g: g eq '"
         $buildURItrailer1 = "') or conditions/users/excludeGroups/any(g: g eq '"
@@ -124,13 +124,18 @@ write-host "not all"
             }
 
         }
+
+if ($GroupOption -ne "All") 
+    {
+        $CAGroupobject = $CAGroupobject | Where-Object{$_.'Conditional Access Policy IncludedGroups' -eq "0ba8b0a3-9971-4b79-a064-aefcdd82545f" -or $_.'Conditional Access Policy ExcludedGroups' -eq "0ba8b0a3-9971-4b79-a064-aefcdd82545f"}
+    }
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
 if($ExportFileType -eq "CSV")
 {
-$outputfile = $Outputdirectory + "GroupsConditionalAccessPolicyAssignments_"+$tdy+".csv"
-$CAGroupobject | sort-object "Conditional Access Policy Name","Conditional Access Policy IncludedGroups Name", "Conditional Access Policy ExcludedGroups Name"| export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
+    $outputfile = $Outputdirectory + "GroupsConditionalAccessPolicyAssignments_"+$tdy+".csv"
+    $CAGroupobject | sort-object "Conditional Access Policy Name","Conditional Access Policy IncludedGroups Name", "Conditional Access Policy ExcludedGroups Name"| export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
 }
-else
+else # do not format the below, it will break CSS required formatting
 {
 $htmlfile = $Outputdirectory + "GroupsConditionalAccessPolicyAssignments_"+$tdy+".html"
 

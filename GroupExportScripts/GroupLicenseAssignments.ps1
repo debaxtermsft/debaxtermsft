@@ -26,9 +26,9 @@ $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-00
 $principalid = "users object id"
 $scope1 ="group.read.all"
 $scope2 ="directory.read.all"
-$scope3 ="groupmember.read.all"
-$scope4 ="Policy.Read.ConditionalAccess"
-$scope5 ="Application.Read.All"
+$scope3 ="user.read.all"
+$scope4 = "LicenseAssignment.Read.All"
+
 
 $today = Get-Date -Format "yyyy-MM-dd"
 $expiredate1 = get-date
@@ -38,7 +38,7 @@ $params = @{
     ConsentType = "Principal"
     ResourceId = $resource.id
     principalId = $principalid
-    Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3"+ " " + "$scope4"+ " " + "$scope5"
+    Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3" + "$scope4"
     startTime = "$today"
     expiryTime = "$expiredate2"
 
@@ -62,7 +62,7 @@ try
     }
 catch
     {
-    Connect-MgGraph -Scopes "group.read.all, directory.read.all, groupmember.read.all, Policy.Read.All, Application.Read.All"
+    Connect-MgGraph -Scopes "group.read.all, directory.read.all,LicenseAssignment.Read.All, User.Read.All"
     }
 
     

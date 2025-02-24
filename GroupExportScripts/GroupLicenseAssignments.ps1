@@ -21,7 +21,7 @@ IMPORTANT!!!
 
 To consent for users to run this script a global admin will need to run the following
 -------------------------------------------------------------------------------------------
-$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
+$sp = get-mgserviceprincipal -all| ?{$_.displayname -eq "Microsoft Graph"}
 $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
 $principalid = "users object id"
 $scope1 ="group.read.all"

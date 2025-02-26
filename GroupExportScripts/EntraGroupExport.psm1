@@ -1,4 +1,4 @@
-<# Written by Derrick Baxter debaxter@microsoft.com
+<# Written by Derrick Baxter 
 the below Powershell module to export
 Group Attributes
 Group Members

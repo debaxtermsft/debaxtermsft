@@ -1,5 +1,5 @@
 <#
-Written By Derrick Baxter debaxter@microsoft.com 
+Written By Derrick Baxter 
 5/8/24
 Bash Script to get a token, checks if anything other than 200 is returned
 checks if token retrieval or secret get is 200 OK, 429 throttled is hit (you can add backoff scripting here or retries +10 seconds or more) or any errors

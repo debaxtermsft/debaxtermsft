@@ -4,7 +4,7 @@
 
 debaxter
 complete rewrite for Azure Graph
-debaxter@microsoft.com
+
 Updated with licenses 7/20/22
 Updated with Conditional Access Policy Export 7/21/22
 complete rewrite from Az UI version
@@ -30,7 +30,7 @@ CLI Version
 
 You may need to have a global admin run the below rem'ed script to consent to the user to run this script
 
-$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
+$sp = get-mgserviceprincipal -all| ?{$_.displayname -eq "Microsoft Graph"}
 $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
 $principalid = "user object id"
 $scope1 ="group.read.all"

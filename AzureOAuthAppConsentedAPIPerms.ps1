@@ -1,5 +1,5 @@
 <#
-Written By Derrick Baxter debaxter@microsoft.com 
+Written By Derrick Baxter 
 8/18/23
 This script will export all API (Principals) that have been granted permissions to APPs
 
@@ -8,7 +8,7 @@ example:
 
 A global administrator will need to consent to permissions first if the person running the below script is not a GA.
 #----------start consent script
-$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
+$sp = get-mgserviceprincipal -all| ?{$_.displayname -eq "Microsoft Graph"}
 $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
 $principalid = "users object id"
 $scope1 ="group.read.all"

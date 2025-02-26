@@ -14,7 +14,7 @@
 # filename will be created for you by the selections + time and date (should be impossible to overwrite) 
 # File will be named $Outputdirectory+"\"+$tenandID+"_" +$subscriptionselected.id+"_" +$scope+"_" +$tdy+".csv"
 # PII can and most likely will be included, make sure your local laws are enforced
-# written by debaxter@microsoft.com
+# written by 
 #######################
 
 

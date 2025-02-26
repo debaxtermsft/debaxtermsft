@@ -1,5 +1,5 @@
 <#
-Written By Derrick Baxter debaxter@microsoft.com
+Written By Derrick Baxter 
 The below script uses the Azure Graph powershell module pulling all deleted objects (users/groups/spns/apps/devices)
 
 written: 7/18/23
@@ -7,7 +7,7 @@ written: 7/18/23
 
 You may need to have a global admin run the below rem'ed script to consent to the user to run this script
 
-$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
+$sp = get-mgserviceprincipal -all| ?{$_.displayname -eq "Microsoft Graph"}
 $resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
 $principalid = "user object id"
 $scope1 ="application.read.all"

@@ -5,6 +5,7 @@ Group Members
 Group CA policy Assignments
 Group License Assignments
 Group Application Assignments
+Group Expiration Policy 
 
 export-EntraGroupMembers  -GroupOption All -GroupTypeFilter All -SecurityofOfficeGroup All -Outputdirectory C:\temp\GroupExportScripts\demo\ -ExportFileType html
 export-EntraGroupMembers -GroupOption All -GroupTypeFilter All -SecurityofOfficeGroup Office -Outputdirectory C:\temp\GroupExportScripts\demo\ -ExportFileType html
@@ -41,6 +42,9 @@ export-EntraGroupApplicationAssignments -GroupOption All  -Outputdirectory C:\te
 
  2/25/25
  Derrick J. Baxter
+
+update 3/18/25 
+Added in Group Expiration Policy export 
 
 
 IMPORTANT!!!
@@ -895,8 +899,122 @@ $htmlContent | Out-File $htmlfile
 }
     
 }
+
+function export-EntraGroupPolicyExpiration
+{
+
+    param([parameter(mandatory=$false)][string] $tenantID,
+    [parameter (mandatory)][validateset("All", "GroupOID")] [string]$groupquestion,
+    [parameter(mandatory=$false)][validateset("GroupName", "ObjectID")][string]$GroupNameorObjectId,
+    [parameter (mandatory)][int]$DaysBack,
+    [parameter (Position=2,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
+    [parameter(mandatory)] [string]$Outputdirectory)
+
+import-Module Microsoft.Graph.Beta.Groups
+
+
+if(!$tenantID)
+{
+    try
+        {
+        Get-MGDomain -ErrorAction Stop > $null
+        }
+    catch
+        {
+            connect-mggraph -scopes "Directory.Read.All, Group.read.all" 
+        }
+}
+else
+ {
+    try
+        {
+        Get-MGDomain -ErrorAction Stop > $null
+        }
+    catch
+        {
+            connect-mggraph -scopes "Directory.Read.All, Group.read.all" -TenantId $tenantID
+        }
+ }
+
+#getting todays date
+$date = Get-Date
+$groupexpiration = get-mggroup -all | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes |Sort-Object -Descending -Property ExpirationDateTime |Where-Object{$_.grouptypes -contains "Unified" -and $_.expirationDateTime -ne $null}
+$GLA = (get-MgGroupLifecyclePolicy).grouplifetimeindays+5
+
+$GroupExpirationProperties =@()
+
+foreach($item in $groupexpiration)
+   {
+        $daysleft = (new-timespan -end $item.expirationDateTime -start $date).days
+        $LastActivity = (new-timespan -start $item.RenewedDateTime -end $date).days
+	[string]$GroupTypesString = $item.grouptypes
+        if ($null -ne $item.DeletedDateTime){write-host "Deleted on "$item.DeletedDateTime}
+        else
+        {
+		if($daysleft -le $DaysBack) #checking if the groups expirationDatetime is -le 1
+            {
+                write-host "groupID is LE 1 day" $item.id " : " $item.displayname " : " $item.expirationDateTime " : "$daysleft
+                $GroupExpirationProperties += New-Object Object |
+                    Add-Member -NotePropertyName DaysLeft           -NotePropertyValue $daysleft                -PassThru |
+                    Add-Member -NotePropertyName GroupDisplayName        -NotePropertyValue $item.DisplayName        -PassThru |
+                    Add-Member -NotePropertyName Mail               -NotePropertyValue $item.Mail               -PassThru |
+                    Add-Member -NotePropertyName GroupID                 -NotePropertyValue $item.Id                 -PassThru |
+                    Add-Member -NotePropertyName LastActivity       -NotePropertyValue $LastActivity            -PassThru |
+                    Add-Member -NotePropertyName ExpirationDateTime -NotePropertyValue $item.ExpirationDateTime -PassThru |
+                    Add-Member -NotePropertyName RenewedDateTime    -NotePropertyValue $item.RenewedDateTime    -PassThru |
+                    Add-Member -NotePropertyName CreatedDateTime    -NotePropertyValue $item.CreatedDateTime    -PassThru |
+                    Add-Member -NotePropertyName DeletedDateTime    -NotePropertyValue $item.DeletedDateTime    -PassThru |
+                    Add-Member -NotePropertyName GroupTypes         -NotePropertyValue $GroupTypesString         -PassThru 
+                $01daysleft = $true
+            }		
+
+	}
+}
+
+$file = "GroupPolicyExpirationExport_"
+$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+if($ExportFileType -eq "CSV")
+{
+    $outputfile = $Outputdirectory + $file+$tdy+".csv"
+    $GroupExpirationProperties | sort-object expirationDateTime, GroupDisplayname  -Descending| export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
+}
+else
+{
+$htmlfile = $Outputdirectory + $file+$tdy+".html"
+
+$cssStyle = @"
+<style>
+table {
+width: 100%;
+border-collapse: collapse;
+}
+th, td {
+border: 1px solid #dddddd;
+text-align: left;
+padding: 8px;
+}
+tr:nth-child(even) {
+background-color: #f2f2f2;
+}
+th {
+background-color: #4CAF50;
+color: white;
+}
+</style>
+"@
+
+$htmlContent = $GroupExpirationProperties | Sort-object expirationdateTime,GroupDisplayName -Descending | ConvertTo-Html -Title "Group Policy Expiration Export" -As "Table"
+$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
+$htmlContent | Out-File $htmlfile
+}
+        
+
+}
+
+
 Export-ModuleMember -Function export-EntraGroupAttributes
 Export-ModuleMember -Function export-EntraGroupMembers 
 Export-ModuleMember -Function export-EntraGroupCAPolicyAssignments
 Export-ModuleMember -Function export-EntraGroupLicenseAssignments
 Export-ModuleMember -Function export-EntraGroupApplicationAssignments
+Export-ModuleMember -Function export-EntraGroupPolicyExpiration

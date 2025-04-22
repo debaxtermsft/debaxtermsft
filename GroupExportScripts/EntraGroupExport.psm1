@@ -199,7 +199,7 @@ if($GroupOption -eq "All")
         } 
         
 
-$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
 if($ExportFileType -eq "CSV")
 {
 $outputfile = $Outputdirectory + $file +$tdy+".csv"
@@ -409,7 +409,7 @@ foreach ($item in $group)
 #creating header for CSV
 
 
-$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
 if($ExportFileType -eq "CSV")
 {
 $outputfile = $Outputdirectory + "GroupMembers_"+$tdy+".csv"
@@ -532,7 +532,7 @@ if ($GroupOption -ne "All")
 {
 $CAGroupobject = $CAGroupobject | Where-Object{$_.'Conditional Access Policy IncludedGroups' -eq "0ba8b0a3-9971-4b79-a064-aefcdd82545f" -or $_.'Conditional Access Policy ExcludedGroups' -eq "0ba8b0a3-9971-4b79-a064-aefcdd82545f"}
 }
-$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
 if($ExportFileType -eq "CSV")
 {
 $outputfile = $Outputdirectory + "GroupsConditionalAccessPolicyAssignments_"+$tdy+".csv"
@@ -775,7 +775,7 @@ function export-EntraGroupLicenseAssignments
     }
                 
     
-    $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+    $tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
     $sortedfinal = @()
     $sortedfinal = $FinalSkuobject | Sort-Object DisabledServicePlanName -Unique
     if($ExportFileType -eq "CSV")
@@ -862,7 +862,7 @@ function export-EntraGroupApplicationAssignments
             }
     
     
-    $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+    $tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
     if($ExportFileType -eq "CSV")
     {
         $outputfile = $Outputdirectory + "GroupApplicationAssignments_"+$tdy+".csv"
@@ -905,7 +905,7 @@ function export-EntraGroupPolicyExpiration
 
     param([parameter(mandatory=$false)][string] $tenantID,
     [parameter (mandatory)][validateset("All", "GroupOID")] [string]$groupquestion,
-    [parameter(mandatory=$false)][validateset("GroupName", "ObjectID")][string]$GroupNameorObjectId,
+    [parameter(mandatory=$false)][string]$GroupObjectId,
     [parameter (mandatory)][int]$DaysBack,
     [parameter (Position=2,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
     [parameter(mandatory)] [string]$Outputdirectory)
@@ -938,7 +938,14 @@ else
 
 #getting todays date
 $date = Get-Date
+if ($groupquestion -eq "GroupOID")
+{
+    $groupexpiration = get-mggroup -id $GroupObjectId | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes 
+}
+else 
+{
 $groupexpiration = get-mggroup -all | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes |Sort-Object -Descending -Property ExpirationDateTime |Where-Object{$_.grouptypes -contains "Unified" -and $_.expirationDateTime -ne $null}
+}
 $GLA = (get-MgGroupLifecyclePolicy).grouplifetimeindays+5
 
 $GroupExpirationProperties =@()
@@ -956,9 +963,9 @@ foreach($item in $groupexpiration)
                 write-host "groupID is LE 1 day" $item.id " : " $item.displayname " : " $item.expirationDateTime " : "$daysleft
                 $GroupExpirationProperties += New-Object Object |
                     Add-Member -NotePropertyName DaysLeft           -NotePropertyValue $daysleft                -PassThru |
-                    Add-Member -NotePropertyName GroupDisplayName        -NotePropertyValue $item.DisplayName        -PassThru |
+                    Add-Member -NotePropertyName GroupDisplayName   -NotePropertyValue $item.DisplayName        -PassThru |
                     Add-Member -NotePropertyName Mail               -NotePropertyValue $item.Mail               -PassThru |
-                    Add-Member -NotePropertyName GroupID                 -NotePropertyValue $item.Id                 -PassThru |
+                    Add-Member -NotePropertyName GroupID            -NotePropertyValue $item.Id                 -PassThru |
                     Add-Member -NotePropertyName LastActivity       -NotePropertyValue $LastActivity            -PassThru |
                     Add-Member -NotePropertyName ExpirationDateTime -NotePropertyValue $item.ExpirationDateTime -PassThru |
                     Add-Member -NotePropertyName RenewedDateTime    -NotePropertyValue $item.RenewedDateTime    -PassThru |
@@ -972,7 +979,7 @@ foreach($item in $groupexpiration)
 }
 
 $file = "GroupPolicyExpirationExport_"
-$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
 if($ExportFileType -eq "CSV")
 {
     $outputfile = $Outputdirectory + $file+$tdy+".csv"
@@ -1003,7 +1010,7 @@ color: white;
 </style>
 "@
 
-$htmlContent = $GroupExpirationProperties | Sort-object expirationdateTime,GroupDisplayName -Descending | ConvertTo-Html -Title "Group Policy Expiration Export" -As "Table"
+$htmlContent = $GroupExpirationProperties | Sort-object expirationdateTime,GroupDisplayName | ConvertTo-Html -Title "Group Policy Expiration Export" -As "Table"
 $htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
 $htmlContent | Out-File $htmlfile
 }
@@ -1012,9 +1019,114 @@ $htmlContent | Out-File $htmlfile
 }
 
 
+<#
+function export-EntraGroupDynamicRuleUserValidator
+{
+    
+}
+#>
+
+function export-EntraGroupMemberCount
+{
+
+    param([parameter(mandatory=$false)][string] $tenantID,
+    [parameter (mandatory)][validateset("All", "GroupOID")] [string]$groupquestion,
+    [parameter(mandatory=$false)][string]$GroupNameorObjectId,
+    [parameter (Position=2,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
+    [parameter(mandatory)] [string]$Outputdirectory)
+
+import-Module Microsoft.Graph.Beta.Groups
+
+
+if(!$tenantID)
+{
+    try
+        {
+        Get-MGDomain -ErrorAction Stop > $null
+        }
+    catch
+        {
+            connect-mggraph -scopes "Directory.Read.All, Group.read.all" 
+        }
+}
+else
+ {
+    try
+        {
+        Get-MGDomain -ErrorAction Stop > $null
+        }
+    catch
+        {
+            connect-mggraph -scopes "Directory.Read.All, Group.read.all" -TenantId $tenantID
+        }
+ }
+
+ $date = Get-Date
+ if ($groupquestion -eq "GroupOID")
+ {
+     $groups = get-mggroup -id $GroupObjectId | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes 
+ }
+ else 
+ {
+    $groups = get-mggroup -all 
+ }
+
+ $counts = @()
+ foreach ($item in $groups) 
+ {
+    $groupcount = (get-mggroupmember -GroupId $item.id).count
+    write-host $item.id " group oid " $item.displayname " this group has : " ($groupcount).count " members"
+    $counts += New-Object Object |
+        Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $item.DisplayName -PassThru |
+        Add-Member -NotePropertyName Group_id -NotePropertyValue $item.id -PassThru |
+        Add-Member -NotePropertyName GroupMemberCount -NotePropertyValue $groupcount -PassThru
+}
+
+
+$file = "GroupMemberCountExport_"
+$tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
+if($ExportFileType -eq "CSV")
+{
+    $outputfile = $Outputdirectory + $file+$tdy+".csv"
+    $GroupExpirationProperties | sort-object Group_DisplayName | export-csv -Path $outputfile -NoTypeInformation -Encoding UTF8
+}
+else
+{
+$htmlfile = $Outputdirectory + $file+$tdy+".html"
+
+$cssStyle = @"
+<style>
+table {
+width: 100%;
+border-collapse: collapse;
+}
+th, td {
+border: 1px solid #dddddd;
+text-align: left;
+padding: 8px;
+}
+tr:nth-child(even) {
+background-color: #f2f2f2;
+}
+th {
+background-color:rgba(7, 19, 255, 0.89);
+color: white;
+}
+</style>
+"@
+
+$htmlContent = $counts | Sort-object Group_DisplayName | ConvertTo-Html -Title "Group Member Count Export" -As "Table"
+$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
+$htmlContent | Out-File $htmlfile
+}
+
+
+}
+
 Export-ModuleMember -Function export-EntraGroupAttributes
 Export-ModuleMember -Function export-EntraGroupMembers 
 Export-ModuleMember -Function export-EntraGroupCAPolicyAssignments
 Export-ModuleMember -Function export-EntraGroupLicenseAssignments
 Export-ModuleMember -Function export-EntraGroupApplicationAssignments
 Export-ModuleMember -Function export-EntraGroupPolicyExpiration
+Export-ModuleMember -Function export-EntraGroupMemberCount

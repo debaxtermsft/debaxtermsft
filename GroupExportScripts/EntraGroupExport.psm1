@@ -528,10 +528,6 @@ write-host "not all"
 
     }
 
-if ($GroupOption -ne "All") 
-{
-$CAGroupobject = $CAGroupobject | Where-Object{$_.'Conditional Access Policy IncludedGroups' -eq "0ba8b0a3-9971-4b79-a064-aefcdd82545f" -or $_.'Conditional Access Policy ExcludedGroups' -eq "0ba8b0a3-9971-4b79-a064-aefcdd82545f"}
-}
 $tdy = get-date -Format "MM-dd-yyyy_HH.mm.ss"
 if($ExportFileType -eq "CSV")
 {

@@ -936,7 +936,7 @@ else
 $date = Get-Date
 if ($groupquestion -eq "GroupOID")
 {
-    $groupexpiration = get-mggroup -id $GroupObjectId | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes 
+    $groupexpiration = get-mggroup  -groupid $GroupObjectId | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes 
 }
 else 
 {
@@ -1060,7 +1060,7 @@ else
  $date = Get-Date
  if ($groupquestion -eq "GroupOID")
  {
-     $groups = get-mggroup -id $GroupObjectId | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes 
+     $groups = get-mggroup  -groupid $GroupObjectId | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes 
  }
  else 
  {
@@ -1071,7 +1071,7 @@ else
  foreach ($item in $groups) 
  {
     $groupcount = (get-mggroupmember -GroupId $item.id).count
-    write-host $item.id " group oid " $item.displayname " this group has : " ($groupcount).count " members"
+    #write-host $item.id " group oid " $item.displayname " this group has : " ($groupcount).count " members"
     $counts += New-Object Object |
         Add-Member -NotePropertyName Group_DisplayName -NotePropertyValue $item.DisplayName -PassThru |
         Add-Member -NotePropertyName Group_id -NotePropertyValue $item.id -PassThru |

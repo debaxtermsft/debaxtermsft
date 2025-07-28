@@ -75,6 +75,22 @@ $params = @{
 }
 
 $InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
+
+
+
+$applicationId = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
+$scope = "group.read.all, groupmember.read.all,policy.read.all, application.read.all"
+$consentType = "Principal"
+$principalId = "NNNNZZZZ-AAAA-BBBB-CCCC-XXXXYYYYZZZZ" # User object ID
+$resourceId = (Get-MgServicePrincipal -Filter "appId eq '$applicationId'").Id
+$clientId = "20bc6389-3805-46a4-b272-edbe58a4882d" # Replace with your app's service principal object ID For Graph Aggregator service
+
+# Create the OAuth2 permission grant
+New-MgOauth2PermissionGrant -ClientId $clientId `
+                            -ResourceId $resourceId `
+                            -Scope $scope `
+                            -ConsentType $consentType `
+                            -PrincipalId $principalId
 -------------------------------------------------------------------------------------------
 You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
 
@@ -899,9 +915,10 @@ $htmlContent | Out-File $htmlfile
 function export-EntraGroupPolicyExpiration
 {
 
-    param([parameter(mandatory=$false)][string] $tenantID,
+param([parameter(mandatory=$false)][string] $tenantID,
     [parameter (mandatory)][validateset("All", "GroupOID")] [string]$groupquestion,
-    [parameter(mandatory=$false)][string]$GroupObjectId,
+    [parameter(mandatory=$false)][validateset("GroupName", "ObjectID")][string]$GroupNameorObjectId,
+    [parameter(mandatory=$false)][validateset("Yes", "No")][string]$CheckSecurityGroupExpiration="Yes",
     [parameter (mandatory)][int]$DaysBack,
     [parameter (Position=2,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
     [parameter(mandatory)] [string]$Outputdirectory)
@@ -938,10 +955,14 @@ if ($groupquestion -eq "GroupOID")
 {
     $groupexpiration = get-mggroup  -groupid $GroupObjectId | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes 
 }
-else 
-{
-$groupexpiration = get-mggroup -all | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes |Sort-Object -Descending -Property ExpirationDateTime |Where-Object{$_.grouptypes -contains "Unified" -and $_.expirationDateTime -ne $null}
-}
+elseif($CheckSecurityGroupExpiration -eq "No"){
+        $groupexpiration = get-mggroup -all | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes |Sort-Object -Descending -Property ExpirationDateTime |Where-Object{$_.grouptypes -contains "Unified" -and $_.expirationDateTime -ne $null}
+    }
+else {
+    #modified due to issue with AAD security group having renewedDateTime and expirationDateTime incorrectly set and group expiration policy deleting security groups, this will return all groups w expirationDateTime set
+        $groupexpiration = get-mggroup -all | Select-Object -Property displayname, Mail,id, CreatedDateTime, ExpirationDateTime, RenewedDateTime, DeletedDateTime, grouptypes |Sort-Object -Descending -Property ExpirationDateTime |Where-Object{$_.expirationDateTime -ne $null -and $_.grouptypes -notcontains "Unified"}
+    }
+
 $GLA = (get-MgGroupLifecyclePolicy).grouplifetimeindays+5
 
 $GroupExpirationProperties =@()

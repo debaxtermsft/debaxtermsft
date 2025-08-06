@@ -42,4 +42,4 @@ foreach ($subitem in $subscriptions){
 }
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
 $filename = $Outputdirectory+"secretexport_"+$tdy+".csv"
-$NearExpirationSecrets | export-csv -Path $filename -NoTypeInformation -Encoding utf8
+$NearExpirationSecrets | export-csv -Path $filename -NoTypeInformation -Encoding utf8  

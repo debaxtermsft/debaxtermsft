@@ -1,189 +1,203 @@
 <#
 written by Derrick Baxter
 10/16/24
-setup categories by dates to get more than just a certain date, but by ranges and expired secrets
+updated 
+8/7/25 params and fixed some issues, added output file
+
+setup categories by dates to get more than just a certain date, but by ranges and expired certificates
 
 Name      Category               ExpirationDate        KeyVaultName
 ----      --------               --------------        ------------
-ted2      SecretExpired          12/2/2022 11:59:59 PM keyvault01
-wildcard  SecretExpired          12/2/2022 11:59:59 PM KeyVault1
-spncert   60-180DaySecretExpiry  1/14/2025 4:45:57 PM  KeyVault1
-start     180-360DaySecretExpiry 9/12/2025 2:13:48 PM  KeyVault1
-newsecret GT1YearDaySecretExpiry 1/3/2026 8:03:11 PM   KeyVault1
-new21424  GT1YearDaySecretExpiry 2/15/2026 9:24:49 PM  KeyVault1
+ted2      certificateExpired          12/2/2022 11:59:59 PM keyvault01
+wildcard  certificateExpired          12/2/2022 11:59:59 PM KeyVault1
+spncert   60-180DaycertificateExpiry  1/14/2025 4:45:57 PM  KeyVault1
+start     180-360DaycertificateExpiry 9/12/2025 2:13:48 PM  KeyVault1
+newcertificate GT1YearDaycertificateExpiry 1/3/2026 8:03:11 PM   KeyVault1
+new21424  GT1YearDaycertificateExpiry 2/15/2026 9:24:49 PM  KeyVault1
+
+.\keyvaultcertificateexpiration.ps1 -tenantid "tenantid" -outputdirectory "c:\temp\"
+make sure to add the trailing \ on the path 
 
 #>#>
-connect-azaccount 
 
-$kvnames = get-azkeyvault
-$NearExpirationcerts = @()
-foreach($rgitem in $kvnames)
+param([parameter(Position=0,mandatory)][string]$tenantId,
+[parameter(Position=1,mandatory)] [string]$Outputdirectory)
+
+
+connect-azaccount -tenantid $tenantId
+$NearExpirationcertificates = @()
+$subscriptions = Get-AzSubscription -TenantId $tenantId
+
+$1Days = Get-Date (Get-Date).AddDays(1) -Format yyyyMMdd
+$7Days = Get-Date (Get-Date).AddDays(7) -Format yyyyMMdd
+$15Days = Get-Date (Get-Date).AddDays(15) -Format yyyyMMdd
+$30Days = Get-Date (Get-Date).AddDays(30) -Format yyyyMMdd
+$60Days = Get-Date (Get-Date).AddDays(60) -Format yyyyMMdd
+$180Days = Get-Date (Get-Date).AddDays(180) -Format yyyyMMdd
+$360days = Get-Date (Get-Date).AddDays(360) -Format yyyyMMdd
+$3600day = Get-Date (Get-Date).AddDays(3600) -Format yyyyMMdd
+$CurrentDate = Get-Date -Format yyyyMMdd
+
+foreach ($subitem in $subscriptions)
 {
-$KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultName $rgitem.vaultname
-    foreach ($kvitem in $keyvault)
-        {
-            $certs = Get-AzKeyVaultCertificate -VaultName $kvitem.VaultName
-            #$certs
-            $1Days = Get-Date (Get-Date).AddDays(1) -Format yyyyMMdd
-            $7Days = Get-Date (Get-Date).AddDays(7) -Format yyyyMMdd
-            $15Days = Get-Date (Get-Date).AddDays(15) -Format yyyyMMdd
-            $30Days = Get-Date (Get-Date).AddDays(30) -Format yyyyMMdd
-            $60Days = Get-Date (Get-Date).AddDays(60) -Format yyyyMMdd
-            $180Days = Get-Date (Get-Date).AddDays(180) -Format yyyyMMdd
-            $360days = Get-Date (Get-Date).AddDays(360) -Format yyyyMMdd
-            $3600day = Get-Date (Get-Date).AddDays(3600) -Format yyyyMMdd
-            $CurrentDate = Get-Date -Format yyyyMMdd
+    Set-AzContext -Subscription $subitem.id -Tenant $tenantId
+    $kvnames = get-azkeyvault 
+
+    if ($kvnames.count -eq 0){
+        write-host "no kv" 
+    }
+    else {
 
 
-                foreach($cert in $certs){
-                    if($cert.Expires) {
-                    $certExpiration = Get-Date $cert.Expires -Format yyyyMMdd
-                    if($certexpiration -gt $360Days)
-                        {
-                            $NearExpirationcerts += New-Object PSObject -Property @{
-                                        Name           = $cert.Name;
-                                        Category       = 'GT1YearDaycertExpiry';
-                                        KeyVaultName   = $KeyVault.VaultName;
-                                        ExpirationDate = $cert.Expires;
-                                        Created         = $cert.created;
-                                        Updated        = $cert.Updated;
-                                        Notbefore      = $cert.NotBefore;
-                                        id             =$cert.Id
+            $kvnames = get-azkeyvault
+
+            foreach($rgitem in $kvnames)
+            {
+
+                        $certificates = Get-AzKeyVaultCertificate -VaultName $rgitem.VaultName
+                        #$certificates
+
+
+
+                            foreach($certificate in $certificates){
+                                if($certificate.Expires) {
+                                $certificateExpiration = Get-Date $certificate.Expires -Format yyyyMMdd
+                                if($certificateexpiration -gt $360Days)
+                                    {
+                                        $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                    Name           = $certificate.Name;
+                                                    Category       = 'GT1YearDaycertificateExpiry';
+                                                    KeyVaultName   = $certificate.vaultname;
+                                                    ExpirationDate = $certificate.Expires;
+                                                    Created         = $certificate.created;
+                                                    Updated        = $certificate.Updated;
+                                                    Notbefore      = $certificate.NotBefore;
+                                                    id             =$certificate.Id
+                                                }
+                
+                                    }  
+                                
+                                elseif($certificateExpiration -le $360Days -and $certificateexpiration -gt $180Days)
+                                {
+                                    $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                Name           = $certificate.Name;
+                                                Category       = '180-360DaycertificateExpiry';
+                                                KeyVaultName   = $certificate.vaultname;
+                                                ExpirationDate = $certificate.Expires;
+                                                Created         = $certificate.created;
+                                                Updated        = $certificate.Updated;
+                                                Notbefore      = $certificate.NotBefore;
+                                                id             =$certificate.Id
+                                            }
+
+                                }  
+                                elseif($certificateExpiration -le $180Days -and $certificateexpiration -gt $60Days)
+                                {
+                                    $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                Name           = $certificate.Name;
+                                                Category       = '60-180DaycertificateExpiry';
+                                                KeyVaultName   = $certificate.vaultname;
+                                                ExpirationDate = $certificate.Expires;
+                                                Created         = $certificate.created;
+                                                Updated        = $certificate.Updated;
+                                                Notbefore      = $certificate.NotBefore;
+                                                id             =$certificate.Id
+                                            }
+
+                                }  
+                                elseif($certificateExpiration -le $60Days -and $certificateexpiration -gt $30Days)
+                                    {
+                                        $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                    Name           = $certificate.Name;
+                                                    Category       = '30-60DaycertificateExpiry';
+                                                    KeyVaultName   = $certificate.vaultname;
+                                                    ExpirationDate = $certificate.Expires;
+                                                    Created         = $certificate.created;
+                                                    Updated        = $certificate.Updated;
+                                                    Notbefore      = $certificate.NotBefore;
+                                                    id             =$certificate.Id
+                                                }
+                
+                                    }  
+                                elseif($certificateExpiration -le $30Days -and $certificateexpiration -gt $15Days)
+                                    {
+                                        $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                    Name           = $certificate.Name;
+                                                    Category       = '15-30DaycertificateExpiry';
+                                                    KeyVaultName   = $certificate.vaultname;
+                                                    ExpirationDate = $certificate.Expires;
+                                                    Created         = $certificate.created;
+                                                    Updated        = $certificate.Updated;
+                                                    Notbefore      = $certificate.NotBefore;
+                                                    id             =$certificate.Id
+                                                }
+                
                                     }
-    
-                        }  
-                    
-                    elseif($certExpiration -le $360Days -and $certexpiration -gt $180Days)
-                    {
-                        $NearExpirationcerts += New-Object PSObject -Property @{
-                                    Name           = $cert.Name;
-                                    Category       = '180-360DaycertExpiry';
-                                    KeyVaultName   = $KeyVault.VaultName;
-                                    ExpirationDate = $cert.Expires;
-                                    Created         = $cert.created;
-                                    Updated        = $cert.Updated;
-                                    Notbefore      = $cert.NotBefore;
-                                    id             =$cert.Id
+                                    elseif($certificateExpiration -le $15Days -and $certificateexpiration -gt $7Days)
+                                    {
+                                        $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                    Name           = $certificate.Name;
+                                                    Category       = '7-15DaycertificateExpiry';
+                                                    KeyVaultName   = $certificate.vaultname;
+                                                    ExpirationDate = $certificate.Expires;
+                                                    Created         = $certificate.created;
+                                                    Updated        = $certificate.Updated;
+                                                    Notbefore      = $certificate.NotBefore;
+                                                    id             =$certificate.Id
+                                                }
+                
+                                    }
+                                    elseif($certificateExpiration -le $7Days -and $certificateexpiration -gt $1Days)
+                                    {
+                                        $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                    Name           = $certificate.Name;
+                                                    Category       = '1-7DaycertificateExpiry';
+                                                    KeyVaultName   = $certificate.vaultname;
+                                                    ExpirationDate = $certificate.Expires;
+                                                    Created         = $certificate.created;
+                                                    Updated        = $certificate.Updated;
+                                                    Notbefore      = $certificate.NotBefore;
+                                                    id             =$certificate.Id
+                                                }
+                
+                                    }                      
+                                elseif($certificateExpiration -lt $currentDate)
+                                {
+                                    $NearExpirationcertificates += New-Object PSObject -Property @{
+                                                Name           = $certificate.Name;
+                                                Category       = 'certificateExpired';
+                                                KeyVaultName   = $certificate.vaultname;
+                                                ExpirationDate = $certificate.Expires;
+                                                Created         = $certificate.created;
+                                                Updated        = $certificate.Updated;
+                                                Notbefore      = $certificate.NotBefore;
+                                                id             =$certificate.Id
+
+                                            }
+
                                 }
 
-                    }  
-                    elseif($certExpiration -le $180Days -and $certexpiration -gt $60Days)
-                    {
-                        $NearExpirationcerts += New-Object PSObject -Property @{
-                                    Name           = $cert.Name;
-                                    Category       = '60-180DaycertExpiry';
-                                    KeyVaultName   = $KeyVault.VaultName;
-                                    ExpirationDate = $cert.Expires;
-                                    Created         = $cert.created;
-                                    Updated        = $cert.Updated;
-                                    Notbefore      = $cert.NotBefore;
-                                    id             =$cert.Id
-                                }
+                            }
+                            elseif($certificate.expires -eq $null) {
+                                $NearExpirationcertificates += New-Object PSObject -Property @{
+                                    Name           = $certificate.Name;
+                                    Category       = 'certificateNotSetOrNull';
+                                    KeyVaultName   = $certificate.vaultname;
+                                    ExpirationDate = $certificate.Expires;
+                                    Created         = $certificate.created;
+                                    Updated        = $certificate.Updated;
+                                    Notbefore      = $certificate.NotBefore;
+                                    id             =$certificate.Id
 
-                    }  
-                    elseif($certExpiration -le $60Days -and $certexpiration -gt $30Days)
-                        {
-                            $NearExpirationcerts += New-Object PSObject -Property @{
-                                        Name           = $cert.Name;
-                                        Category       = '30-60DaycertExpiry';
-                                        KeyVaultName   = $KeyVault.VaultName;
-                                        ExpirationDate = $cert.Expires;
-                                        Created         = $cert.created;
-                                        Updated        = $cert.Updated;
-                                        Notbefore      = $cert.NotBefore;
-                                        id             =$cert.Id
-                                    }
-    
-                        }  
-                    elseif($certExpiration -le $30Days -and $certexpiration -gt $15Days)
-                        {
-                            $NearExpirationcerts += New-Object PSObject -Property @{
-                                        Name           = $cert.Name;
-                                        Category       = '15-30DaycertExpiry';
-                                        KeyVaultName   = $KeyVault.VaultName;
-                                        ExpirationDate = $cert.Expires;
-                                        Created         = $cert.created;
-                                        Updated        = $cert.Updated;
-                                        Notbefore      = $cert.NotBefore;
-                                        id             =$cert.Id
-                                    }
-    
-                        }
-                        elseif($certExpiration -le $15Days -and $certexpiration -gt $7Days)
-                        {
-                            $NearExpirationcerts += New-Object PSObject -Property @{
-                                        Name           = $cert.Name;
-                                        Category       = '7-15DaycertExpiry';
-                                        KeyVaultName   = $KeyVault.VaultName;
-                                        ExpirationDate = $cert.Expires;
-                                        Created         = $cert.created;
-                                        Updated        = $cert.Updated;
-                                        Notbefore      = $cert.NotBefore;
-                                        id             =$cert.Id
-                                    }
-    
-                        }
-                        elseif($certExpiration -le $7Days -and $certexpiration -gt $1Days)
-                        {
-                            $NearExpirationcerts += New-Object PSObject -Property @{
-                                        Name           = $cert.Name;
-                                        Category       = '1-7DaycertExpiry';
-                                        KeyVaultName   = $KeyVault.VaultName;
-                                        ExpirationDate = $cert.Expires;
-                                        Created         = $cert.created;
-                                        Updated        = $cert.Updated;
-                                        Notbefore      = $cert.NotBefore;
-                                        id             =$cert.Id
-                                    }
-    
-                        }                      
-                    elseif($certExpiration -lt $currentDate)
-                    {
-                        $NearExpirationcerts += New-Object PSObject -Property @{
-                                    Name           = $cert.Name;
-                                    Category       = 'certExpired';
-                                    KeyVaultName   = $KeyVault.VaultName;
-                                    ExpirationDate = $cert.Expires;
-                                    Created         = $cert.created;
-                                    Updated        = $cert.Updated;
-                                    Notbefore      = $cert.NotBefore;
-                                    id             =$cert.Id
                                 }
-
+                            }
                     }
-                }
+                #}
+            }
         }
-    }
 }
+$NearExpirationcertificates | Sort-Object  category,expirationdate  | ft -autosize
 
-$NearExpirationcerts | Sort-Object  expirationdate, category  | ft -autosize
-
-$tdy                            = get-date -Format "MM-dd-yyyy hh.mm.ss"
-$file                           = $outputdirectory +"EntraDirectoryQuota_and_objectcounter_"+$tdy+".csv"
-$htmlfile                           = $outputdirectory +"EntraDirectoryQuota_and_objectcounter_"+$tdy+".html"
-
-$cssStyle = @"
-<style>
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th, td {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-    }
-    tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-    th {
-        background-color: #4CAF50;
-        color: white;
-    }
-</style>
-"@
-
-$htmlfileoutput = "C:\temp\keyvaultexpireyCSK.html"
-$htmlContent = $NearExpirationcerts | Sort-Object  expirationdate, category | ConvertTo-Html -Title "My Data" -As "Table"
-$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
-$htmlContent | Out-File $htmlfileoutput
+$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$filename = $Outputdirectory+"certificateexport_"+$tdy+".csv"
+$NearExpirationcertificates | Sort-Object category, expirationdate| export-csv -Path $filename -NoTypeInformation -Encoding utf8

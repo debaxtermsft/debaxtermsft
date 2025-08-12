@@ -15,16 +15,24 @@ start     180-360DaycertificateExpiry 9/12/2025 2:13:48 PM  KeyVault1
 newcertificate GT1YearDaycertificateExpiry 1/3/2026 8:03:11 PM   KeyVault1
 new21424  GT1YearDaycertificateExpiry 2/15/2026 9:24:49 PM  KeyVault1
 
-.\keyvaultcertificateexpiration.ps1 -tenantid "tenantid" -outputdirectory "c:\temp\"
+.\keyvaultcertificateexpiration.ps1 -tenantid "tenantid" -outputdirectory "c:\temp\" -Outputdirectory c:\temp\ -ExportFileType HTML -SortExportBy SubscriptionName
 make sure to add the trailing \ on the path 
+SortExportBy Options "SubscriptionName", "ResourceGroupName", "Location", "Category" , "ExpirationDate"
 
 #>#>
 
 param([parameter(Position=0,mandatory)][string]$tenantId,
+[parameter (Position=5,mandatory)][validateset("SubscriptionName", "ResourceGroupName", "Location", "Category" , "ExpirationDate")] [string]$SortExportBy,
+[parameter (Position=5,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
 [parameter(Position=1,mandatory)] [string]$Outputdirectory)
 
+try {
+    Get-AzSubscription -TenantId $tenantId -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+}
+catch {
+    connect-azaccount -tenantid $tenantId
+}
 
-connect-azaccount -tenantid $tenantId
 $NearExpirationcertificates = @()
 $subscriptions = Get-AzSubscription -TenantId $tenantId
 
@@ -44,7 +52,7 @@ foreach ($subitem in $subscriptions)
     $kvnames = get-azkeyvault 
 
     if ($kvnames.count -eq 0){
-        write-host "no kv" 
+        write-host "No key vault in subscription found, check AKV RBAC/access policy permissions" 
     }
     else {
 
@@ -53,13 +61,13 @@ foreach ($subitem in $subscriptions)
 
             foreach($rgitem in $kvnames)
             {
-
-                        $certificates = Get-AzKeyVaultCertificate -VaultName $rgitem.VaultName
-                        #$certificates
-
-
-
-                            foreach($certificate in $certificates){
+                $certificates = Get-AzKeyVaultcertificate -VaultName $rgitem.VaultName
+                #$certificates
+                    if ($certificates.count -eq 0) {write-host "No certificates found, check AKV RBAC/Access Policy to get/list certificates in vault " $rgitem.VaultName " subscription " $subitem.SubscriptionId}
+                    else
+                        {
+                            foreach($certificate in $certificates)
+                            {
                                 if($certificate.Expires) {
                                 $certificateExpiration = Get-Date $certificate.Expires -Format yyyyMMdd
                                 if($certificateexpiration -gt $360Days)
@@ -72,11 +80,14 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $certificate.created;
                                                     Updated        = $certificate.Updated;
                                                     Notbefore      = $certificate.NotBefore;
-                                                    id             =$certificate.Id
+                                                    id             =$certificate.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
-                
                                     }  
-                                
                                 elseif($certificateExpiration -le $360Days -and $certificateexpiration -gt $180Days)
                                 {
                                     $NearExpirationcertificates += New-Object PSObject -Property @{
@@ -87,9 +98,13 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $certificate.created;
                                                 Updated        = $certificate.Updated;
                                                 Notbefore      = $certificate.NotBefore;
-                                                id             =$certificate.Id
+                                                id             =$certificate.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
                                             }
-
                                 }  
                                 elseif($certificateExpiration -le $180Days -and $certificateexpiration -gt $60Days)
                                 {
@@ -101,7 +116,12 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $certificate.created;
                                                 Updated        = $certificate.Updated;
                                                 Notbefore      = $certificate.NotBefore;
-                                                id             =$certificate.Id
+                                                id             =$certificate.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
                                             }
 
                                 }  
@@ -115,7 +135,12 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $certificate.created;
                                                     Updated        = $certificate.Updated;
                                                     Notbefore      = $certificate.NotBefore;
-                                                    id             =$certificate.Id
+                                                    id             =$certificate.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }  
@@ -129,11 +154,16 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $certificate.created;
                                                     Updated        = $certificate.Updated;
                                                     Notbefore      = $certificate.NotBefore;
-                                                    id             =$certificate.Id
+                                                    id             =$certificate.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }
-                                    elseif($certificateExpiration -le $15Days -and $certificateexpiration -gt $7Days)
+                                elseif($certificateExpiration -le $15Days -and $certificateexpiration -gt $7Days)
                                     {
                                         $NearExpirationcertificates += New-Object PSObject -Property @{
                                                     Name           = $certificate.Name;
@@ -143,11 +173,16 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $certificate.created;
                                                     Updated        = $certificate.Updated;
                                                     Notbefore      = $certificate.NotBefore;
-                                                    id             =$certificate.Id
+                                                    id             =$certificate.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }
-                                    elseif($certificateExpiration -le $7Days -and $certificateexpiration -gt $1Days)
+                                elseif($certificateExpiration -le $7Days -and $certificateexpiration -gt $1Days)
                                     {
                                         $NearExpirationcertificates += New-Object PSObject -Property @{
                                                     Name           = $certificate.Name;
@@ -157,7 +192,12 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $certificate.created;
                                                     Updated        = $certificate.Updated;
                                                     Notbefore      = $certificate.NotBefore;
-                                                    id             =$certificate.Id
+                                                    id             =$certificate.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }                      
@@ -171,33 +211,76 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $certificate.created;
                                                 Updated        = $certificate.Updated;
                                                 Notbefore      = $certificate.NotBefore;
-                                                id             =$certificate.Id
+                                                id             =$certificate.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
 
                                             }
 
-                                }
+                                        }
 
-                            }
-                            elseif($certificate.expires -eq $null) {
-                                $NearExpirationcertificates += New-Object PSObject -Property @{
-                                    Name           = $certificate.Name;
-                                    Category       = 'certificateNotSetOrNull';
-                                    KeyVaultName   = $certificate.vaultname;
-                                    ExpirationDate = $certificate.Expires;
-                                    Created         = $certificate.created;
-                                    Updated        = $certificate.Updated;
-                                    Notbefore      = $certificate.NotBefore;
-                                    id             =$certificate.Id
+                                    }
+                                    elseif($certificate.expires -eq $null) {
+                                        $NearExpirationcertificates += New-Object PSObject -Property @{
+                                            Name           = $certificate.Name;
+                                            Category       = 'Expire Not Set Or Null';
+                                            KeyVaultName   = $certificate.vaultname;
+                                            ExpirationDate = $certificate.Expires;
+                                            Created         = $certificate.created;
+                                            Updated        = $certificate.Updated;
+                                            Notbefore      = $certificate.NotBefore;
+                                            id             =$certificate.Id;
+                                            SubscriptionName   = $subitem.Name;
+                                            SubscriptionID     = $subitem.Id;
+                                            ResourceGroupName  = $rgitem.ResourceGroupName;
+                                            ResourceID         = $rgitem.id;
+                                            Location           = $rgitem.Location
 
-                                }
+                                        }
+                                    }
                             }
-                    }
-                #}
+                        }
             }
         }
 }
-$NearExpirationcertificates | Sort-Object  category,expirationdate  | ft -autosize
+$NearExpirationcertificates | Sort-Object  $SortExportBy  | ft -autosize
 
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
-$filename = $Outputdirectory+"certificateexport_"+$tdy+".csv"
-$NearExpirationcertificates | Sort-Object category, expirationdate| export-csv -Path $filename -NoTypeInformation -Encoding utf8
+
+if($ExportFileType -eq "CSV")
+{
+$outputfile = $Outputdirectory+"certificateexport_"+$tdy+".csv"
+$NearExpirationcertificates | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id, SubscriptionName, SubscriptionID, ResourceGroupName, Location, ResourceID| Sort-Object $SortExportBy| export-csv -Path $outputfile -NoTypeInformation -Encoding utf8
+}
+else
+{
+$htmlfile = $Outputdirectory+"certificateexport_"+$tdy+".html"
+
+$cssStyle = @"
+<style>
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+th {
+    background-color:rgb(32, 156, 228);
+    color: white;
+}
+</style>
+"@
+
+$htmlContent = $NearExpirationcertificates | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id, SubscriptionName, SubscriptionID, ResourceGroupName, Location, ResourceID | Sort-Object $SortExportBy | ConvertTo-Html -Title "Key Vault Expiration certificate Export" -As "Table"
+$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
+$htmlContent | Out-File $htmlfile
+}

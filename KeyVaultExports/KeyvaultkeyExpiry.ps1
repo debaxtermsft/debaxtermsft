@@ -15,15 +15,23 @@ start     180-360DaykeyExpiry 9/12/2025 2:13:48 PM  KeyVault1
 newkey GT1YearDaykeyExpiry 1/3/2026 8:03:11 PM   KeyVault1
 new21424  GT1YearDaykeyExpiry 2/15/2026 9:24:49 PM  KeyVault1
 
-.\keyvaultkeyexpiration.ps1 -tenantid "tenantid" -outputdirectory "c:\temp\"
+.\keyvaultkeyexpiration.ps1 -tenantid "tenantid" -outputdirectory "c:\temp\"  -ExportFileType HTML -SortExportBy SubscriptionName
+SortExportBy Options "SubscriptionName", "ResourceGroupName", "Location", "Category" , "ExpirationDate"
 make sure to add the trailing \ on the path 
 #>#>
 
 param([parameter(Position=0,mandatory)][string]$tenantId,
+[parameter (Position=5,mandatory)][validateset("SubscriptionName", "ResourceGroupName", "Location", "Category" , "ExpirationDate")] [string]$SortExportBy,
+[parameter (Position=5,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
 [parameter(Position=1,mandatory)] [string]$Outputdirectory)
 
+try {
+    Get-AzSubscription -TenantId $tenantId -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+}
+catch {
+    connect-azaccount -tenantid $tenantId
+}
 
-connect-azaccount -tenantid $tenantId
 $NearExpirationkeys = @()
 $subscriptions = Get-AzSubscription -TenantId $tenantId
 
@@ -43,7 +51,7 @@ foreach ($subitem in $subscriptions)
     $kvnames = get-azkeyvault 
 
     if ($kvnames.count -eq 0){
-        write-host "no kv" 
+        write-host "No key vault in subscription found, check AKV RBAC/access policy permissions" 
     }
     else {
 
@@ -52,15 +60,13 @@ foreach ($subitem in $subscriptions)
 
             foreach($rgitem in $kvnames)
             {
-            #$KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultName $rgitem.vaultname
-                #foreach ($kvitem in $keyvault)
-                    #{
-                        $keys = Get-AzKeyVaultkey -VaultName $rgitem.VaultName
-                        #$keys
-
-
-
-                            foreach($key in $keys){
+                $keys = Get-AzKeyVaultkey -VaultName $rgitem.VaultName
+                #$keys
+                    if ($keys.count -eq 0) {write-host "No keys found, check AKV RBAC/Access Policy to get/list keys in vault " $rgitem.VaultName " subscription " $subitem.SubscriptionId}
+                    else
+                        {
+                            foreach($key in $keys)
+                            {
                                 if($key.Expires) {
                                 $keyExpiration = Get-Date $key.Expires -Format yyyyMMdd
                                 if($keyexpiration -gt $360Days)
@@ -73,11 +79,14 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $key.created;
                                                     Updated        = $key.Updated;
                                                     Notbefore      = $key.NotBefore;
-                                                    id             =$key.Id
+                                                    id             =$key.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
-                
                                     }  
-                                
                                 elseif($keyExpiration -le $360Days -and $keyexpiration -gt $180Days)
                                 {
                                     $NearExpirationkeys += New-Object PSObject -Property @{
@@ -88,9 +97,13 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $key.created;
                                                 Updated        = $key.Updated;
                                                 Notbefore      = $key.NotBefore;
-                                                id             =$key.Id
+                                                id             =$key.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
                                             }
-
                                 }  
                                 elseif($keyExpiration -le $180Days -and $keyexpiration -gt $60Days)
                                 {
@@ -102,7 +115,12 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $key.created;
                                                 Updated        = $key.Updated;
                                                 Notbefore      = $key.NotBefore;
-                                                id             =$key.Id
+                                                id             =$key.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
                                             }
 
                                 }  
@@ -116,7 +134,12 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $key.created;
                                                     Updated        = $key.Updated;
                                                     Notbefore      = $key.NotBefore;
-                                                    id             =$key.Id
+                                                    id             =$key.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }  
@@ -130,11 +153,16 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $key.created;
                                                     Updated        = $key.Updated;
                                                     Notbefore      = $key.NotBefore;
-                                                    id             =$key.Id
+                                                    id             =$key.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }
-                                    elseif($keyExpiration -le $15Days -and $keyexpiration -gt $7Days)
+                                elseif($keyExpiration -le $15Days -and $keyexpiration -gt $7Days)
                                     {
                                         $NearExpirationkeys += New-Object PSObject -Property @{
                                                     Name           = $key.Name;
@@ -144,11 +172,16 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $key.created;
                                                     Updated        = $key.Updated;
                                                     Notbefore      = $key.NotBefore;
-                                                    id             =$key.Id
+                                                    id             =$key.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }
-                                    elseif($keyExpiration -le $7Days -and $keyexpiration -gt $1Days)
+                                elseif($keyExpiration -le $7Days -and $keyexpiration -gt $1Days)
                                     {
                                         $NearExpirationkeys += New-Object PSObject -Property @{
                                                     Name           = $key.Name;
@@ -158,7 +191,12 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $key.created;
                                                     Updated        = $key.Updated;
                                                     Notbefore      = $key.NotBefore;
-                                                    id             =$key.Id
+                                                    id             =$key.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }                      
@@ -172,33 +210,77 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $key.created;
                                                 Updated        = $key.Updated;
                                                 Notbefore      = $key.NotBefore;
-                                                id             =$key.Id
+                                                id             =$key.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
 
                                             }
 
-                                }
+                                        }
 
-                            }
-                            elseif($key.expires -eq $null) {
-                                $NearExpirationkeys += New-Object PSObject -Property @{
-                                    Name           = $key.Name;
-                                    Category       = 'keyNotSetOrNull';
-                                    KeyVaultName   = $key.vaultname;
-                                    ExpirationDate = $key.Expires;
-                                    Created         = $key.created;
-                                    Updated        = $key.Updated;
-                                    Notbefore      = $key.NotBefore;
-                                    id             =$key.Id
+                                    }
+                                    elseif($key.expires -eq $null) {
+                                        $NearExpirationkeys += New-Object PSObject -Property @{
+                                            Name           = $key.Name;
+                                            Category       = 'Expire Not Set Or Null';
+                                            KeyVaultName   = $key.vaultname;
+                                            ExpirationDate = $key.Expires;
+                                            Created         = $key.created;
+                                            Updated        = $key.Updated;
+                                            Notbefore      = $key.NotBefore;
+                                            id             =$key.Id;
+                                            SubscriptionName   = $subitem.Name;
+                                            SubscriptionID     = $subitem.Id;
+                                            ResourceGroupName  = $rgitem.ResourceGroupName;
+                                            ResourceID         = $rgitem.id;
+                                            Location           = $rgitem.Location
 
-                                }
+                                        }
+                                    }
                             }
-                    }
-                #}
+                        }
             }
         }
 }
-$NearExpirationkeys | Sort-Object  category,expirationdate  | ft -autosize
+$NearExpirationkeys | Sort-Object  $SortExportBy  | ft -autosize
 
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
-$filename = $Outputdirectory+"keyexport_"+$tdy+".csv"
-$NearExpirationkeys | Sort-Object category, expirationdate| export-csv -Path $filename -NoTypeInformation -Encoding utf8
+
+if($ExportFileType -eq "CSV")
+{
+$outputfile = $Outputdirectory+"keyexport_"+$tdy+".csv"
+$NearExpirationkeys | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id, SubscriptionName, SubscriptionID, ResourceGroupName, Location, ResourceID| Sort-Object $SortExportBy| export-csv -Path $outputfile -NoTypeInformation -Encoding utf8
+}
+else
+{
+$htmlfile = $Outputdirectory+"keyexport_"+$tdy+".html"
+
+$cssStyle = @"
+<style>
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+th {
+    background-color:rgb(32, 156, 228);
+    color: white;
+}
+</style>
+"@
+
+#$htmlContent = $NearExpirationkeys | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id | Sort-Object $SortExportBy | ConvertTo-Html -Title "Key Vault Expiration key Export" -As "Table"
+$htmlContent = $NearExpirationkeys | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id, SubscriptionName, SubscriptionID, ResourceGroupName, Location, ResourceID | Sort-Object $SortExportBy | ConvertTo-Html -Title "Key Vault Expiration key Export" -As "Table"
+$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
+$htmlContent | Out-File $htmlfile
+}

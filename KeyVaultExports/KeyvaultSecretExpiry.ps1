@@ -15,16 +15,24 @@ start     180-360DaySecretExpiry 9/12/2025 2:13:48 PM  KeyVault1
 newsecret GT1YearDaySecretExpiry 1/3/2026 8:03:11 PM   KeyVault1
 new21424  GT1YearDaySecretExpiry 2/15/2026 9:24:49 PM  KeyVault1
 
-.\keyvaultsecretexpiration.ps1 -tenantid "tenantid" -outputdirectory "c:\temp\"
+.\keyvaultsecretexpiration.ps1 -tenantid "tenantid" -outputdirectory "c:\temp\" -ExportFileType HTML -SortExportBy SubscriptionName
 make sure to add the trailing \ on the path 
+SortExportBy Options "SubscriptionName", "ResourceGroupName", "Location", "Category" , "ExpirationDate"
 
 #>#>
 
 param([parameter(Position=0,mandatory)][string]$tenantId,
+[parameter (Position=5,mandatory)][validateset("SubscriptionName", "ResourceGroupName", "Location", "Category" , "ExpirationDate")] [string]$SortExportBy,
+[parameter (Position=5,mandatory)][validateset("HTML", "CSV")] [string]$ExportFileType,
 [parameter(Position=1,mandatory)] [string]$Outputdirectory)
 
+try {
+    Get-AzSubscription -TenantId $tenantId -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+}
+catch {
+    connect-azaccount -tenantid $tenantId
+}
 
-connect-azaccount -tenantid $tenantId
 $NearExpirationSecrets = @()
 $subscriptions = Get-AzSubscription -TenantId $tenantId
 
@@ -44,7 +52,7 @@ foreach ($subitem in $subscriptions)
     $kvnames = get-azkeyvault 
 
     if ($kvnames.count -eq 0){
-        write-host "no kv" 
+        write-host "No key vault in subscription found, check AKV RBAC/access policy permissions" 
     }
     else {
 
@@ -53,15 +61,13 @@ foreach ($subitem in $subscriptions)
 
             foreach($rgitem in $kvnames)
             {
-            #$KeyVault = Get-AzKeyVault -ResourceGroupName $rgitem.resourcegroupname -VaultName $rgitem.vaultname
-                #foreach ($kvitem in $keyvault)
-                    #{
-                        $secrets = Get-AzKeyVaultSecret -VaultName $rgitem.VaultName
-                        #$secrets
-
-
-
-                            foreach($secret in $secrets){
+                $secrets = Get-AzKeyVaultSecret -VaultName $rgitem.VaultName
+                #$secrets
+                    if ($secrets.count -eq 0) {write-host "No Secrets found, check AKV RBAC/Access Policy to get/list secrets in vault " $rgitem.VaultName " subscription " $subitem.SubscriptionId}
+                    else
+                        {
+                            foreach($secret in $secrets)
+                            {
                                 if($secret.Expires) {
                                 $secretExpiration = Get-Date $secret.Expires -Format yyyyMMdd
                                 if($secretexpiration -gt $360Days)
@@ -74,11 +80,14 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $secret.created;
                                                     Updated        = $secret.Updated;
                                                     Notbefore      = $secret.NotBefore;
-                                                    id             =$secret.Id
+                                                    id             =$secret.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
-                
                                     }  
-                                
                                 elseif($secretExpiration -le $360Days -and $secretexpiration -gt $180Days)
                                 {
                                     $NearExpirationSecrets += New-Object PSObject -Property @{
@@ -89,9 +98,13 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $secret.created;
                                                 Updated        = $secret.Updated;
                                                 Notbefore      = $secret.NotBefore;
-                                                id             =$secret.Id
+                                                id             =$secret.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
                                             }
-
                                 }  
                                 elseif($secretExpiration -le $180Days -and $secretexpiration -gt $60Days)
                                 {
@@ -103,7 +116,12 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $secret.created;
                                                 Updated        = $secret.Updated;
                                                 Notbefore      = $secret.NotBefore;
-                                                id             =$secret.Id
+                                                id             =$secret.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
                                             }
 
                                 }  
@@ -117,7 +135,12 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $secret.created;
                                                     Updated        = $secret.Updated;
                                                     Notbefore      = $secret.NotBefore;
-                                                    id             =$secret.Id
+                                                    id             =$secret.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }  
@@ -131,11 +154,16 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $secret.created;
                                                     Updated        = $secret.Updated;
                                                     Notbefore      = $secret.NotBefore;
-                                                    id             =$secret.Id
+                                                    id             =$secret.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }
-                                    elseif($secretExpiration -le $15Days -and $secretexpiration -gt $7Days)
+                                elseif($secretExpiration -le $15Days -and $secretexpiration -gt $7Days)
                                     {
                                         $NearExpirationSecrets += New-Object PSObject -Property @{
                                                     Name           = $secret.Name;
@@ -145,11 +173,16 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $secret.created;
                                                     Updated        = $secret.Updated;
                                                     Notbefore      = $secret.NotBefore;
-                                                    id             =$secret.Id
+                                                    id             =$secret.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }
-                                    elseif($secretExpiration -le $7Days -and $secretexpiration -gt $1Days)
+                                elseif($secretExpiration -le $7Days -and $secretexpiration -gt $1Days)
                                     {
                                         $NearExpirationSecrets += New-Object PSObject -Property @{
                                                     Name           = $secret.Name;
@@ -159,7 +192,12 @@ foreach ($subitem in $subscriptions)
                                                     Created         = $secret.created;
                                                     Updated        = $secret.Updated;
                                                     Notbefore      = $secret.NotBefore;
-                                                    id             =$secret.Id
+                                                    id             =$secret.Id;
+                                                    SubscriptionName   = $subitem.Name;
+                                                    SubscriptionID     = $subitem.Id;
+                                                    ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                    ResourceID         = $rgitem.id;
+                                                    Location           = $rgitem.Location
                                                 }
                 
                                     }                      
@@ -173,33 +211,77 @@ foreach ($subitem in $subscriptions)
                                                 Created         = $secret.created;
                                                 Updated        = $secret.Updated;
                                                 Notbefore      = $secret.NotBefore;
-                                                id             =$secret.Id
+                                                id             =$secret.Id;
+                                                SubscriptionName   = $subitem.Name;
+                                                SubscriptionID     = $subitem.Id;
+                                                ResourceGroupName  = $rgitem.ResourceGroupName;
+                                                ResourceID         = $rgitem.id;
+                                                Location           = $rgitem.Location
 
                                             }
 
-                                }
+                                        }
 
-                            }
-                            elseif($secret.expires -eq $null) {
-                                $NearExpirationSecrets += New-Object PSObject -Property @{
-                                    Name           = $secret.Name;
-                                    Category       = 'SecretNotSetOrNull';
-                                    KeyVaultName   = $secret.vaultname;
-                                    ExpirationDate = $secret.Expires;
-                                    Created         = $secret.created;
-                                    Updated        = $secret.Updated;
-                                    Notbefore      = $secret.NotBefore;
-                                    id             =$secret.Id
+                                    }
+                                    elseif($secret.expires -eq $null) {
+                                        $NearExpirationSecrets += New-Object PSObject -Property @{
+                                            Name           = $secret.Name;
+                                            Category       = 'Expire Not Set Or Null';
+                                            KeyVaultName   = $secret.vaultname;
+                                            ExpirationDate = $secret.Expires;
+                                            Created         = $secret.created;
+                                            Updated        = $secret.Updated;
+                                            Notbefore      = $secret.NotBefore;
+                                            id             =$secret.Id;
+                                            SubscriptionName   = $subitem.Name;
+                                            SubscriptionID     = $subitem.Id;
+                                            ResourceGroupName  = $rgitem.ResourceGroupName;
+                                            ResourceID         = $rgitem.id;
+                                            Location           = $rgitem.Location
 
-                                }
+                                        }
+                                    }
                             }
-                    }
-                #}
+                        }
             }
         }
 }
-$NearExpirationSecrets | Sort-Object  category,expirationdate  | ft -autosize
+$NearExpirationSecrets | Sort-Object  $SortExportBy  | ft -autosize
 
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
-$filename = $Outputdirectory+"secretexport_"+$tdy+".csv"
-$NearExpirationSecrets | Sort-Object category, expirationdate| export-csv -Path $filename -NoTypeInformation -Encoding utf8
+
+if($ExportFileType -eq "CSV")
+{
+$outputfile = $Outputdirectory+"secretexport_"+$tdy+".csv"
+$NearExpirationSecrets | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id, SubscriptionName, SubscriptionID, ResourceGroupName, Location, ResourceID| Sort-Object $SortExportBy| export-csv -Path $outputfile -NoTypeInformation -Encoding utf8
+}
+else
+{
+$htmlfile = $Outputdirectory+"secretexport_"+$tdy+".html"
+
+$cssStyle = @"
+<style>
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+th {
+    background-color:rgb(32, 156, 228);
+    color: white;
+}
+</style>
+"@
+
+#$htmlContent = $NearExpirationSecrets | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id | Sort-Object $SortExportBy | ConvertTo-Html -Title "Key Vault Expiration Secret Export" -As "Table"
+$htmlContent = $NearExpirationSecrets | Select-Object KeyvaultName, Name, Category, Created, ExpirationDate, Notbefore, Updated, id, SubscriptionName, SubscriptionID, ResourceGroupName, Location, ResourceID | Sort-Object $SortExportBy | ConvertTo-Html -Title "Key Vault Expiration Secret Export" -As "Table"
+$htmlContent = $htmlContent -replace "</head>", "$cssStyle`n</head>"
+$htmlContent | Out-File $htmlfile
+}

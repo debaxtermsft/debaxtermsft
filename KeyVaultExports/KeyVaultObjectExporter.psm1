@@ -1,4 +1,7 @@
 <#
+Written By : Derrick Baxter
+8/12/25
+
 import-module keyvaultobjectexporter.psm1
 commands
 

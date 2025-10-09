@@ -1,7 +1,7 @@
 param([parameter(mandatory=$false)][string] $tenantID,
     [parameter (mandatory)][int]$DaysBack,
     [parameter(mandatory)] [string]$Outputdirectory)
- 
+
 
 # Connect to Microsoft Graph
 
@@ -418,13 +418,13 @@ $changeLicenseData = $UserProperties | ForEach-Object { $_.'Change user license'
 $html += @"
 <canvas id='userActivityChart' width='900' height='400'></canvas>
 <script>
-const labels = $($(ConvertTo-Json $datesUser));
+const labels2 = $($(ConvertTo-Json $datesUser));
 const addUser = $($(ConvertTo-Json $addUserData));
 const deleteUser = $($(ConvertTo-Json $deleteUserData));
 const updateUser = $($(ConvertTo-Json $updateUserData));
 const changeLicense = $($(ConvertTo-Json $changeLicenseData));
 
-const data = {
+const data2 = {
   labels: labels,
   datasets: [
     { label: 'Add User', data: addUser, backgroundColor: 'rgba(54,162,235,0.7)' },
@@ -434,7 +434,7 @@ const data = {
   ]
 };
 
-const config = {
+const config2 = {
   type: 'bar',
   data: data,
   options: {
@@ -504,7 +504,7 @@ $totalDeviceData = $deviceProperties | ForEach-Object { $_.'Total Daily Device A
 $html += @"
 <canvas id='deviceActivityChart' width='900' height='400'></canvas>
 <script>
-const labels = $($(ConvertTo-Json $dates));
+const labels3 = $($(ConvertTo-Json $dates));
 const addDevice = $($(ConvertTo-Json $addDeviceData));
 const deleteDevice = $($(ConvertTo-Json $deleteDeviceData));
 const updateDevice = $($(ConvertTo-Json $updateDeviceData));
@@ -514,7 +514,7 @@ const ARUDevice = $($(ConvertTo-Json $ARUDeviceData));
 const RRUDevice = $($(ConvertTo-Json $RRUDeviceData));
 const totalDevice = $($(ConvertTo-Json $totalDeviceData));
 
-const data = {
+const data3 = {
   labels: labels,
   datasets: [
     { label: 'Add Device', data: addDevice, backgroundColor: 'rgba(54,162,235,0.5)' },
@@ -528,7 +528,7 @@ const data = {
   ]
 };
 
-const config = {
+const config3 = {
   type: 'bar',
   data: data,
   options: {
@@ -579,12 +579,12 @@ $html += @"
 <h2>Administrative Unit Activity Chart</h2>
 <canvas id='adminUnitChart' width='900' height='400'></canvas>
 <script>
-const labels = $($(ConvertTo-Json $datesAU));
+const labels4 = $($(ConvertTo-Json $datesAU));
 const addMemberAU = $($(ConvertTo-Json $addMemberAU));
 const removeMemberAU = $($(ConvertTo-Json $removeMemberAU));
 const updateAU = $($(ConvertTo-Json $updateAU));
 
-const data = {
+const data4 = {
   labels: labels,
   datasets: [
     { label: 'Add Member', data: addMemberAU, backgroundColor: 'rgba(54,162,235,0.7)' },
@@ -593,7 +593,7 @@ const data = {
   ]
 };
 
-const config = {
+const config4 = {
   type: 'bar',
   data: data,
   options: {

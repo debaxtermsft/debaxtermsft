@@ -1,3 +1,8 @@
+<#
+Written by Derrick Baxter
+10/09/2025
+
+#>
 param([parameter(mandatory=$false)][string] $tenantID,
     [parameter (mandatory)][int]$DaysBack,
     [parameter(mandatory)] [string]$Outputdirectory)
@@ -15,12 +20,11 @@ catch
     }
 
 # Base URI for audit logs
-$baseUri = "https://graph.microsoft.com/v1.0/auditLogs/directoryAudits"
+$baseUri   = "https://graph.microsoft.com/v1.0/auditLogs/directoryAudits"
 
 # Define date range (last 30 days from today)
-#$startDate = (Get-Date).AddDays(-30).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 $startDate = (Get-Date).AddDays(-$DaysBack).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-$endDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+$endDate   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
 # Function to fetch all pages with throttling handling
 function Get-AuditLogs {
@@ -28,7 +32,7 @@ function Get-AuditLogs {
         [string]$Uri
     )
     $allResults = @()
-    $nextLink = $Uri
+    $nextLink   = $Uri
     $retryDelay = 60  # Default delay in seconds
 
     do {
@@ -148,7 +152,7 @@ foreach ($day in $dailyBreakdownDevices) {
     $totalRemoveRegisteredusersfromDevice += $RemoveRegUsersfromDeviceCount
     $totalAddRegistereduserstoDevice      += $AddRegUsers2DeviceCount
 
-$totalDailyDeviceActivity = $UpdateDeviceCount + $AddDeviceCount + $DeleteDeviceCount + $AddRegDeviceOwnerCount + $RemoveRegownerfromDeviceCount + $AddRegUsers2DeviceCount + $RemoveRegUsersfromDeviceCount
+    $totalDailyDeviceActivity = $UpdateDeviceCount + $AddDeviceCount + $DeleteDeviceCount + $AddRegDeviceOwnerCount + $RemoveRegownerfromDeviceCount + $AddRegUsers2DeviceCount + $RemoveRegUsersfromDeviceCount
 
     $deviceProperties += New-Object PSObject |
         Add-Member -NotePropertyName "Date" -NotePropertyValue $((Get-Date $dayDate).ToString('MM/dd/yyyy')) -PassThru |
@@ -220,33 +224,32 @@ $userDays   = $UserProperties.Count
 $auDays     = $AdminUnitProperties.Count
 $deviceDays = $DeviceProperties.Count
 
-$avgAddMember       = if ($groupDays -gt 0) { [math]::Round($totalAddMember / $groupDays, 2) } else { 0 }
-$avgRemoveMember    = if ($groupDays -gt 0) { [math]::Round($totalRemoveMember / $groupDays, 2) } else { 0 }
-$avgUpdateGroup     = if ($groupDays -gt 0) { [math]::Round($totalUpdateGroup / $groupDays, 2) } else { 0 }
-$avgAddGroup        = if ($groupDays -gt 0) { [math]::Round($totalAddGroup / $groupDays, 2) } else { 0 }
-$avgDeleteGroup     = if ($groupDays -gt 0) { [math]::Round($totalDeleteGroup / $groupDays, 2) } else { 0 }
-$avgTotalGroup      = if ($groupDays -gt 0) { [math]::Round(($totalAddMember + $totalRemoveMember + $totalUpdateGroup + $totalAddGroup + $totalDeleteGroup) / $groupDays, 2) } else { 0 }
+$avgAddMember         = if ($groupDays -gt 0) { [math]::Round($totalAddMember / $groupDays, 2) } else { 0 }
+$avgRemoveMember      = if ($groupDays -gt 0) { [math]::Round($totalRemoveMember / $groupDays, 2) } else { 0 }
+$avgUpdateGroup       = if ($groupDays -gt 0) { [math]::Round($totalUpdateGroup / $groupDays, 2) } else { 0 }
+$avgAddGroup          = if ($groupDays -gt 0) { [math]::Round($totalAddGroup / $groupDays, 2) } else { 0 }
+$avgDeleteGroup       = if ($groupDays -gt 0) { [math]::Round($totalDeleteGroup / $groupDays, 2) } else { 0 }
+$avgTotalGroup        = if ($groupDays -gt 0) { [math]::Round(($totalAddMember + $totalRemoveMember + $totalUpdateGroup + $totalAddGroup + $totalDeleteGroup) / $groupDays, 2) } else { 0 }
 
-$avgAddUser         = if ($userDays -gt 0) { [math]::Round($totalAddUser / $userDays, 2) } else { 0 }
-$avgDeleteUser      = if ($userDays -gt 0) { [math]::Round($totalDeleteUser / $userDays, 2) } else { 0 }
-$avgUpdateUser      = if ($userDays -gt 0) { [math]::Round($totalUpdateUser / $userDays, 2) } else { 0 }
+$avgAddUser           = if ($userDays -gt 0) { [math]::Round($totalAddUser / $userDays, 2) } else { 0 }
+$avgDeleteUser        = if ($userDays -gt 0) { [math]::Round($totalDeleteUser / $userDays, 2) } else { 0 }
+$avgUpdateUser        = if ($userDays -gt 0) { [math]::Round($totalUpdateUser / $userDays, 2) } else { 0 }
 $avgChangeUserLicense = if ($userDays -gt 0) { [math]::Round($totalChangeUserLicense / $userDays, 2) } else { 0 }
-$avgTotalUser       = if ($userDays -gt 0) { [math]::Round(($totalAddUser + $totalDeleteUser + $totalUpdateUser + $totalChangeUserLicense) / $userDays, 2) } else { 0 }
+$avgTotalUser         = if ($userDays -gt 0) { [math]::Round(($totalAddUser + $totalDeleteUser + $totalUpdateUser + $totalChangeUserLicense) / $userDays, 2) } else { 0 }
 
-$avgAddDevice       = if ($deviceDays -gt 0) { [math]::Round($totalAddDevice / $deviceDays, 2) } else { 0 }
-$avgDeleteDevice    = if ($deviceDays -gt 0) { [math]::Round($totalDeleteDevice / $deviceDays, 2) } else { 0 }
-$avgUpdateDevice    = if ($deviceDays -gt 0) { [math]::Round($totalUpdateDevice / $deviceDays, 2) } else { 0 }
-$avgRRODevice       = if ($deviceDays -gt 0) { [math]::Round($totalRemoveRegisteredOwnerfromDevice / $deviceDays, 2) } else { 0 }
-$avgARODevice       = if ($deviceDays -gt 0) { [math]::Round($totalAddRegisteredOwnertoDevice / $deviceDays, 2) } else { 0 }
-$avgRRUDevice       = if ($deviceDays -gt 0) { [math]::Round($totalRemoveRegisteredusersfromDevice / $deviceDays, 2) } else { 0 }
-$avgARUDevice       = if ($deviceDays -gt 0) { [math]::Round($totalAddRegistereduserstoDevice / $deviceDays, 2) } else { 0 }
+$avgAddDevice         = if ($deviceDays -gt 0) { [math]::Round($totalAddDevice / $deviceDays, 2) } else { 0 }
+$avgDeleteDevice      = if ($deviceDays -gt 0) { [math]::Round($totalDeleteDevice / $deviceDays, 2) } else { 0 }
+$avgUpdateDevice      = if ($deviceDays -gt 0) { [math]::Round($totalUpdateDevice / $deviceDays, 2) } else { 0 }
+$avgRRODevice         = if ($deviceDays -gt 0) { [math]::Round($totalRemoveRegisteredOwnerfromDevice / $deviceDays, 2) } else { 0 }
+$avgARODevice         = if ($deviceDays -gt 0) { [math]::Round($totalAddRegisteredOwnertoDevice / $deviceDays, 2) } else { 0 }
+$avgRRUDevice         = if ($deviceDays -gt 0) { [math]::Round($totalRemoveRegisteredusersfromDevice / $deviceDays, 2) } else { 0 }
+$avgARUDevice         = if ($deviceDays -gt 0) { [math]::Round($totalAddRegistereduserstoDevice / $deviceDays, 2) } else { 0 }
+$avgTotalDevice       = if ($deviceDays -gt 0) { [math]::Round(($totalAddDevice + $totalDeleteDevice + $totalUpdateDevice + $totalRemoveRegisteredOwnerfromDevice + $totalRemoveRegisteredusersfromDevice + $totalAddRegisteredOwnertoDevice + $RemoveRegUsersfromDeviceCount) / $deviceDays, 2) } else { 0 }
 
-$avgTotalDevice     = if ($deviceDays -gt 0) { [math]::Round(($totalAddDevice + $totalDeleteDevice + $totalUpdateDevice + $totalRemoveRegisteredOwnerfromDevice + $totalRemoveRegisteredusersfromDevice + $totalAddRegisteredOwnertoDevice + $RemoveRegUsersfromDeviceCount) / $deviceDays, 2) } else { 0 }
-
-$avgAddMemberAU     = if ($auDays -gt 0) { [math]::Round($totalAddMemberAU / $auDays, 2) } else { 0 }
-$avgRemoveMemberAU  = if ($auDays -gt 0) { [math]::Round($totalRemoveMemberAU / $auDays, 2) } else { 0 }
-$avgUpdateAU        = if ($auDays -gt 0) { [math]::Round($totalUpdateAU / $auDays, 2) } else { 0 }
-$avgTotalAU         = if ($auDays -gt 0) { [math]::Round(($totalAddMemberAU + $totalRemoveMemberAU + $totalUpdateAU) / $auDays, 2) } else { 0 }
+$avgAddMemberAU       = if ($auDays -gt 0) { [math]::Round($totalAddMemberAU / $auDays, 2) } else { 0 }
+$avgRemoveMemberAU    = if ($auDays -gt 0) { [math]::Round($totalRemoveMemberAU / $auDays, 2) } else { 0 }
+$avgUpdateAU          = if ($auDays -gt 0) { [math]::Round($totalUpdateAU / $auDays, 2) } else { 0 }
+$avgTotalAU           = if ($auDays -gt 0) { [math]::Round(($totalAddMemberAU + $totalRemoveMemberAU + $totalUpdateAU) / $auDays, 2) } else { 0 }
 
 # HTML header with CSS
 $html = @"
@@ -304,12 +307,12 @@ $html = @"
 # GroupManagement Table
 $html += "<h2>Group Management (Averages: Add $avgAddMember, Remove $avgRemoveMember, Update $avgUpdateGroup, Add Group $avgAddGroup, Delete $avgDeleteGroup, Total $avgTotalGroup)</h2>`n<table>`n<tr><th style=`"width: 300px;`">Date</th><th>Add Member</th><th>Remove Member</th><th>Update Group</th><th>Add Group</th><th>Delete Group</th><th>Total Daily Group Activity</th></tr>`n"
 foreach ($entry in $GroupProperties) {
-    $addMemberClass = if ($entry."Add member to group" -gt $avgAddMember) { 'class="highlight"' } elseif ($entry."Add member to group" -lt $avgAddMember) { 'class="lowlight"' } else { '' }
+    $addMemberClass    = if ($entry."Add member to group" -gt $avgAddMember) { 'class="highlight"' } elseif ($entry."Add member to group" -lt $avgAddMember) { 'class="lowlight"' } else { '' }
     $removeMemberClass = if ($entry."Remove member from group" -gt $avgRemoveMember) { 'class="highlight"' } elseif ($entry."Remove member from group" -lt $avgRemoveMember) { 'class="lowlight"' } else { '' }
-    $updateGroupClass = if ($entry."Update group" -gt $avgUpdateGroup) { 'class="highlight"' } elseif ($entry."Update group" -lt $avgUpdateGroup) { 'class="lowlight"' } else { '' }
-    $addGroupClass = if ($entry."Add group" -gt $avgAddGroup) { 'class="highlight"' } elseif ($entry."Add group" -lt $avgAddGroup) { 'class="lowlight"' } else { '' }
-    $deleteGroupClass = if ($entry."Delete group" -gt $avgDeleteGroup) { 'class="highlight"' } elseif ($entry."Delete group" -lt $avgDeleteGroup) { 'class="lowlight"' } else { '' }
-    $totalDailyClass = if ($entry."Total Daily Group Activity" -gt $avgTotalGroup) { 'class="highlight"' } elseif ($entry."Total Daily Group Activity" -lt $avgTotalGroup) { 'class="lowlight"' } else { '' }
+    $updateGroupClass  = if ($entry."Update group" -gt $avgUpdateGroup) { 'class="highlight"' } elseif ($entry."Update group" -lt $avgUpdateGroup) { 'class="lowlight"' } else { '' }
+    $addGroupClass     = if ($entry."Add group" -gt $avgAddGroup) { 'class="highlight"' } elseif ($entry."Add group" -lt $avgAddGroup) { 'class="lowlight"' } else { '' }
+    $deleteGroupClass  = if ($entry."Delete group" -gt $avgDeleteGroup) { 'class="highlight"' } elseif ($entry."Delete group" -lt $avgDeleteGroup) { 'class="lowlight"' } else { '' }
+    $totalDailyClass   = if ($entry."Total Daily Group Activity" -gt $avgTotalGroup) { 'class="highlight"' } elseif ($entry."Total Daily Group Activity" -lt $avgTotalGroup) { 'class="lowlight"' } else { '' }
 
     $html += "    <tr>`n"
     $html += "        <td>$($entry.Date)</td>`n"
@@ -332,22 +335,22 @@ $html += "        <td>$totalDeleteGroup</td>`n"
 $html += "        <td>$totalAllGroup</td>`n"
 $html += "    </tr>`n</table>`n"
 
-$datesGroup = $GroupProperties | ForEach-Object { $_.Date }
-$addMemberData = $GroupProperties | ForEach-Object { $_.'Add member to group' }
+$datesGroup       = $GroupProperties | ForEach-Object { $_.Date }
+$addMemberData    = $GroupProperties | ForEach-Object { $_.'Add member to group' }
 $removeMemberData = $GroupProperties | ForEach-Object { $_.'Remove member from group' }
-$updateGroupData = $GroupProperties | ForEach-Object { $_.'Update group' }
-$addGroupData = $GroupProperties | ForEach-Object { $_.'Add group' }
-$deleteGroupData = $GroupProperties | ForEach-Object { $_.'Delete group' }
+$updateGroupData  = $GroupProperties | ForEach-Object { $_.'Update group' }
+$addGroupData     = $GroupProperties | ForEach-Object { $_.'Add group' }
+$deleteGroupData  = $GroupProperties | ForEach-Object { $_.'Delete group' }
 
 $html += @"
 <canvas id='groupActivityChart' width='900' height='400'></canvas>
 <script>
-const labels = $($(ConvertTo-Json $datesGroup));
-const addMember = $($(ConvertTo-Json $addMemberData));
+const labels       = $($(ConvertTo-Json $datesGroup));
+const addMember    = $($(ConvertTo-Json $addMemberData));
 const removeMember = $($(ConvertTo-Json $removeMemberData));
-const updateGroup = $($(ConvertTo-Json $updateGroupData));
-const addGroup = $($(ConvertTo-Json $addGroupData));
-const deleteGroup = $($(ConvertTo-Json $deleteGroupData));
+const updateGroup  = $($(ConvertTo-Json $updateGroupData));
+const addGroup     = $($(ConvertTo-Json $addGroupData));
+const deleteGroup  = $($(ConvertTo-Json $deleteGroupData));
 
 const data = {
   labels: labels,
@@ -409,19 +412,19 @@ $html += "        <td>$totalAllUser</td>`n"
 $html += "    </tr>`n</table>`n"
 
 
-$datesUser = $UserProperties | ForEach-Object { $_.Date }
-$addUserData = $UserProperties | ForEach-Object { $_.'Add user' }
-$deleteUserData = $UserProperties | ForEach-Object { $_.'Delete user' }
-$updateUserData = $UserProperties | ForEach-Object { $_.'Update user' }
+$datesUser         = $UserProperties | ForEach-Object { $_.Date }
+$addUserData       = $UserProperties | ForEach-Object { $_.'Add user' }
+$deleteUserData    = $UserProperties | ForEach-Object { $_.'Delete user' }
+$updateUserData    = $UserProperties | ForEach-Object { $_.'Update user' }
 $changeLicenseData = $UserProperties | ForEach-Object { $_.'Change user license' }
 
 $html += @"
 <canvas id='userActivityChart' width='900' height='400'></canvas>
 <script>
-const labels2 = $($(ConvertTo-Json $datesUser));
-const addUser = $($(ConvertTo-Json $addUserData));
-const deleteUser = $($(ConvertTo-Json $deleteUserData));
-const updateUser = $($(ConvertTo-Json $updateUserData));
+const labels2       = $($(ConvertTo-Json $datesUser));
+const addUser       = $($(ConvertTo-Json $addUserData));
+const deleteUser    = $($(ConvertTo-Json $deleteUserData));
+const updateUser    = $($(ConvertTo-Json $updateUserData));
 const changeLicense = $($(ConvertTo-Json $changeLicenseData));
 
 const Userdata = {
@@ -491,28 +494,28 @@ $html += "        <td>$totalRemoveRegisteredusersfromDevice</td>`n"
 $html += "        <td>$totalAlldevice</td>`n"
 $html += "    </tr>`n</table>`n"
 
-$dates = $deviceProperties | ForEach-Object { $_.Date }
-$addDeviceData = $deviceProperties | ForEach-Object { $_.'Add device' }
+$dates            = $deviceProperties | ForEach-Object { $_.Date }
+$addDeviceData    = $deviceProperties | ForEach-Object { $_.'Add device' }
 $deleteDeviceData = $deviceProperties | ForEach-Object { $_.'Delete device' }
 $updateDeviceData = $deviceProperties | ForEach-Object { $_.'Update device' }
-$ARODeviceData = $deviceProperties | ForEach-Object { $_.'ARO to device' }
-$RRODeviceData = $deviceProperties | ForEach-Object { $_.'RRO from device' }
-$ARUDeviceData = $deviceProperties | ForEach-Object { $_.'ARU to device' }
-$RRUDeviceData = $deviceProperties | ForEach-Object { $_.'RRU from device' }
-$totalDeviceData = $deviceProperties | ForEach-Object { $_.'Total Daily Device Activity' }
+$ARODeviceData    = $deviceProperties | ForEach-Object { $_.'ARO to device' }
+$RRODeviceData    = $deviceProperties | ForEach-Object { $_.'RRO from device' }
+$ARUDeviceData    = $deviceProperties | ForEach-Object { $_.'ARU to device' }
+$RRUDeviceData    = $deviceProperties | ForEach-Object { $_.'RRU from device' }
+$totalDeviceData  = $deviceProperties | ForEach-Object { $_.'Total Daily Device Activity' }
 
 $html += @"
 <canvas id='deviceActivityChart' width='900' height='400'></canvas>
 <script>
 const devicelabels = $($(ConvertTo-Json $dates));
-const addDevice = $($(ConvertTo-Json $addDeviceData));
+const addDevice    = $($(ConvertTo-Json $addDeviceData));
 const deleteDevice = $($(ConvertTo-Json $deleteDeviceData));
 const updateDevice = $($(ConvertTo-Json $updateDeviceData));
-const ARODevice = $($(ConvertTo-Json $ARODeviceData));
-const RRODevice = $($(ConvertTo-Json $RRODeviceData));
-const ARUDevice = $($(ConvertTo-Json $ARUDeviceData));
-const RRUDevice = $($(ConvertTo-Json $RRUDeviceData));
-const totalDevice = $($(ConvertTo-Json $totalDeviceData));
+const ARODevice    = $($(ConvertTo-Json $ARODeviceData));
+const RRODevice    = $($(ConvertTo-Json $RRODeviceData));
+const ARUDevice    = $($(ConvertTo-Json $ARUDeviceData));
+const RRUDevice    = $($(ConvertTo-Json $RRUDeviceData));
+const totalDevice  = $($(ConvertTo-Json $totalDeviceData));
 
 const devicedata = {
   labels: devicelabels,
@@ -623,11 +626,11 @@ new Chart(document.getElementById('adminUnitChartSingle'), config);
 <h2>Administrative Unit Activity Chart</h2>
 <canvas id='adminUnitChart' width='900' height='400'></canvas>
 <script>
-const AUlabels = $($(ConvertTo-Json $datesAU));
-const addMemberAU = $($(ConvertTo-Json $addMemberAU));
+const AUlabels       = $($(ConvertTo-Json $datesAU));
+const addMemberAU    = $($(ConvertTo-Json $addMemberAU));
 const removeMemberAU = $($(ConvertTo-Json $removeMemberAU));
-const updateAU = $($(ConvertTo-Json $updateAU));
-const AUTotal = $($(ConvertTo-Json $totalAUData));
+const updateAU       = $($(ConvertTo-Json $updateAU));
+const AUTotal        = $($(ConvertTo-Json $totalAUData));
 
 const AUdata1 = {
   labels: AUlabels,

@@ -515,7 +515,7 @@ const ARODevice    = $($(ConvertTo-Json $ARODeviceData));
 const RRODevice    = $($(ConvertTo-Json $RRODeviceData));
 const ARUDevice    = $($(ConvertTo-Json $ARUDeviceData));
 const RRUDevice    = $($(ConvertTo-Json $RRUDeviceData));
-const totalDevice  = $($(ConvertTo-Json $totalDeviceData));
+
 
 const devicedata = {
   labels: devicelabels,
@@ -526,8 +526,7 @@ const devicedata = {
     { label: 'ARO', data: ARODevice, backgroundColor: 'rgba(75,192,192,0.5)' },
     { label: 'RRO', data: RRODevice, backgroundColor: 'rgba(153,102,255,0.5)' },
     { label: 'ARU', data: ARUDevice, backgroundColor: 'rgba(255,159,64,0.5)' },
-    { label: 'RRU', data: RRUDevice, backgroundColor: 'rgba(199,199,199,0.5)' },
-    { label: 'Total', data: totalDevice, backgroundColor: 'rgba(100,100,100,0.5)' }
+    { label: 'RRU', data: RRUDevice, backgroundColor: 'rgba(199,199,199,0.5)' }
   ]
 };
 

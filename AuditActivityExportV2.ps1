@@ -360,11 +360,11 @@ const deleteGroup  = $($(ConvertTo-Json $deleteGroupData));
 const data = {
   labels: labels,
   datasets: [
-    { label: 'Add Member', data: addMember, backgroundColor: 'rgba(54,162,235,0.7)' },
-    { label: 'Remove Member', data: removeMember, backgroundColor: 'rgba(255,99,132,0.7)' },
-    { label: 'Update Group', data: updateGroup, backgroundColor: 'rgba(255,206,86,0.7)' },
-    { label: 'Add Group', data: addGroup, backgroundColor: 'rgba(75,192,192,0.7)' },
-    { label: 'Delete Group', data: deleteGroup, backgroundColor: 'rgba(153,102,255,0.7)' }
+    { label: 'Add Member', data: addMember, backgroundColor: 'rgba(30,144,255,0.7)' },    // Dodger Blue
+    { label: 'Remove Member', data: removeMember, backgroundColor: 'rgba(70,130,180,0.7)' }, // Steel Blue
+    { label: 'Update Group', data: updateGroup, backgroundColor: 'rgba(100,149,237,0.7)' }, // Cornflower Blue
+    { label: 'Add Group', data: addGroup, backgroundColor: 'rgba(65,105,225,0.7)' },       // Royal Blue
+    { label: 'Delete Group', data: deleteGroup, backgroundColor: 'rgba(0,0,139,0.7)' }     // Dark Blue
   ]
 };
 
@@ -435,10 +435,10 @@ const changeLicense = $($(ConvertTo-Json $changeLicenseData));
 const Userdata = {
   labels: labels2,
   datasets: [
-    { label: 'Add User', data: addUser, backgroundColor: 'rgba(54,162,235,0.7)' },
-    { label: 'Delete User', data: deleteUser, backgroundColor: 'rgba(255,99,132,0.7)' },
-    { label: 'Update User', data: updateUser, backgroundColor: 'rgba(255,206,86,0.7)' },
-    { label: 'Change License', data: changeLicense, backgroundColor: 'rgba(75,192,192,0.7)' }
+    { label: 'Add User', data: addUser, backgroundColor: 'rgba(220,20,60,0.7)' },      // Crimson
+    { label: 'Delete User', data: deleteUser, backgroundColor: 'rgba(255,0,0,0.7)' }, // Pure Red
+    { label: 'Update User', data: updateUser, backgroundColor: 'rgba(178,34,34,0.7)' }, // Firebrick
+    { label: 'Change License', data: changeLicense, backgroundColor: 'rgba(255,69,0,0.7)' } // Red-Orange
   ]
 };
 
@@ -526,13 +526,13 @@ const RRUDevice    = $($(ConvertTo-Json $RRUDeviceData))
 const devicedata = {
   labels: devicelabels,
   datasets: [
-    { label: 'Add Device', data: addDevice, backgroundColor: 'rgba(54,162,235,0.5)' },
-    { label: 'Delete Device', data: deleteDevice, backgroundColor: 'rgba(255,99,132,0.5)' },
-    { label: 'Update Device', data: updateDevice, backgroundColor: 'rgba(255,206,86,0.5)' },
-    { label: 'ARO', data: ARODevice, backgroundColor: 'rgba(75,192,192,0.5)' },
-    { label: 'RRO', data: RRODevice, backgroundColor: 'rgba(153,102,255,0.5)' },
-    { label: 'ARU', data: ARUDevice, backgroundColor: 'rgba(255,159,64,0.5)' },
-    { label: 'RRU', data: RRUDevice, backgroundColor: 'rgba(199,199,199,0.5)' }    
+    { label: 'Add Device', data: addDevice, backgroundColor: 'rgba(34,139,34,0.5)' },    // Forest Green
+    { label: 'Delete Device', data: deleteDevice, backgroundColor: 'rgba(0,128,0,0.5)' }, // Green
+    { label: 'Update Device', data: updateDevice, backgroundColor: 'rgba(60,179,113,0.5)' }, // Medium Sea Green
+    { label: 'ARO', data: ARODevice, backgroundColor: 'rgba(46,139,87,0.5)' },           // Sea Green
+    { label: 'RRO', data: RRODevice, backgroundColor: 'rgba(0,100,0,0.5)' },            // Dark Green
+    { label: 'ARU', data: ARUDevice, backgroundColor: 'rgba(107,142,35,0.5)' },         // Olive Drab
+    { label: 'RRU', data: RRUDevice, backgroundColor: 'rgba(152,251,152,0.5)' }         // Pale Green
   ]
 };
 
@@ -640,9 +640,9 @@ const updateAU       = $($(ConvertTo-Json $updateAU));
 const AUdata1 = {
   labels: AUlabels,
   datasets: [
-    { label: 'Add Member', data: addMemberAU, backgroundColor: 'rgba(54,162,235,0.7)' },
-    { label: 'Remove Member', data: removeMemberAU, backgroundColor: 'rgba(255,99,132,0.7)' },
-    { label: 'Update AU', data: updateAU, backgroundColor: 'rgba(255,206,86,0.7)' }
+    { label: 'Add Member', data: addMemberAU, backgroundColor: 'rgba(255,215,0,0.7)' },    // Gold
+    { label: 'Remove Member', data: removeMemberAU, backgroundColor: 'rgba(255,255,0,0.7)' }, // Yellow
+    { label: 'Update AU', data: updateAU, backgroundColor: 'rgba(238,232,170,0.7)' }        // Pale Goldenrod  
   ]
 };
 

@@ -77,7 +77,7 @@ $AdminUnitUri             = "$baseUri`?`$filter=category eq 'AdministrativeUnit'
 $AdminUnitAuditLogs       = Get-AuditLogs -Uri $AdminUnitUri
 $dailyBreakdownAdminUnits = $AdminUnitAuditLogs | Group-Object { (Get-Date $_.activityDateTime).ToString("yyyy-MM-dd") } | Sort-Object Name
 #>
-$AllUri = "$baseUri`?`$filter=category eq 'AdministrativeUnit' and activityDateTime ge $startDate and activityDateTime le $endDate"
+#$AllUri = "$baseUri`?`$filter=category eq 'AdministrativeUnit' and activityDateTime ge $startDate and activityDateTime le $endDate"
 $AllUri = "$baseUri`?`$filter=category eq 'AdministrativeUnit' or category eq 'GroupManagement' or category eq 'Usermanagement' or category eq 'Device' and activityDateTime ge $startDate and activityDateTime le $endDate"
 $allAuditLogs = Get-AuditLogs -Uri $AllUri
 $allDailyBreakdown = $allAuditLogs | Group-Object { (Get-Date $_.activityDateTime).ToString("yyyy-MM-dd") } | Sort-Object Name

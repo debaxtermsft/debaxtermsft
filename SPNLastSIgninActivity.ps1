@@ -1,3 +1,7 @@
+<#
+Written by Derrick Baxter 10/23/25
+retrieves lastSigninActivity reports for Service Principa
+#>
 connect-mggraph -scopes "directory.read.all, application.read.all, auditlog.read.all"
 
 $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid | Sort-Object displayname

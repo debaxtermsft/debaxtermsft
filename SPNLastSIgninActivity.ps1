@@ -3,7 +3,6 @@ Written by Derrick Baxter 10/23/25
 retrieves lastSigninActivity reports for Service Principals
 add trailing \ for directory or it will put it into the root of last \
 .\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\"
-
 #>
 param([parameter(mandatory=$false)][string] $tenantID,
     [parameter(mandatory)] [string]$Outputdirectory)

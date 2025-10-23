@@ -46,7 +46,7 @@ $SPNObject =@()
 foreach ($item in $apps) {
 $count++
     $percent = [math]::Round(($count / $total) * 100, 2)
-    Write-Host "Processing: $count of $total ($percent % complete) - ($item.DisplayName)"
+    Write-Host "Processing: $count of $total ($percent % complete)"
 
     $filterapps = $item.appid
 $getAppSAreport = get-mgbetaReportServicePrincipalSignInActivity -Filter "appId eq '$filterapps'" -Property *

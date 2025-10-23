@@ -5,6 +5,7 @@ add trailing \ for directory or it will put it into the root of last \
 .\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\"
 #>
 param([parameter(mandatory=$false)][string] $tenantID,
+    [parameter(mandatory)][validateset("All", "Microsoft 1st Party")] [string]$AppOwner)
     [parameter(mandatory)] [string]$Outputdirectory)
 
 # Connect to Microsoft Graph
@@ -19,8 +20,15 @@ catch
     }
 
 
-#$apps = Get-MgServicePrincipal -all | Select-Object displayname, appid | Sort-Object displayname | ?{$_.displayname -like "Microsoft *"}
-$apps = Get-MgServicePrincipal -all | Select-Object displayname, appid | Sort-Object displayname 
+
+if($AppOwner -eq "All")
+{
+    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid,AppOwnerOrganizationId | Sort-Object displayname
+}
+else 
+{
+    $apps = Get-MgServicePrincipal -top 25 | Select-Object displayname, appid,AppOwnerOrganizationId | Sort-Object displayname | Where-Object{$_.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47" -or $_.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" }
+}
 
 $SPNObject =@()
 foreach ($item in $apps) {

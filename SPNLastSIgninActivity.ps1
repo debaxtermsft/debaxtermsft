@@ -63,7 +63,7 @@ foreach ($item in $apps) {
     $getAppSAreport = get-mgbetaReportServicePrincipalSignInActivity -Filter "appId eq '$filterapps'" -Property *
 
 
-if ($getAppSAreport -ne $null){
+if ($null -ne $getAppSAreport){
     [string]$cdt    = $item.additionalproperties.values
     [string]$Lsia   = $getAppSAreport.lastsigninactivity.lastsignindatetime
     [string]$DCSIA  = $getAppSAreport.DelegatedClientSignInActivity.lastsigninDatetime

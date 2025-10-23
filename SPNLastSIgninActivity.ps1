@@ -6,9 +6,11 @@ NOTE: MAY TAKE A VERY LONG TIME!!! BE PATIENT (throttling may be added if report
 .\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "all"
 if you want only 1st party applications
 .\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "Microsoft 1st Party"
+if you want no 1st party applications
+.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "NoMSFT"
 #>
 param([parameter(mandatory=$false)][string] $tenantID,
-    [parameter(mandatory)][validateset("All", "Microsoft 1st Party")] [string]$AppOwner,
+    [parameter(mandatory)][validateset("All", "NoMSFT","Microsoft 1st Party")] [string]$AppOwner,
     [parameter(mandatory)] [string]$Outputdirectory)
 
 # Connect to Microsoft Graph
@@ -24,18 +26,29 @@ catch
 
 
 
-if($AppOwner -eq "All")
+if($AppOwner.ToUpper() -eq "ALL")
 {
     $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid,AppOwnerOrganizationId | Sort-Object displayname
+}
+elseif($AppOwner.ToUpper() -eq "NOMSFT")
+{
+    $apps = Get-MgServicePrincipal -top 25 | Select-Object displayname, appid,AppOwnerOrganizationId | Sort-Object displayname | Where-Object{$_.AppOwnerOrganizationId -ne "72f988bf-86f1-41af-91ab-2d7cd011db47" -and $_.AppOwnerOrganizationId -ne "f8cdef31-a31e-4b4a-93e4-5f571e91255a" }
 }
 else 
 {
     $apps = Get-MgServicePrincipal -top 25 | Select-Object displayname, appid,AppOwnerOrganizationId | Sort-Object displayname | Where-Object{$_.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47" -or $_.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" }
 }
+$total = $apps.Count
+$count = 0
+Write-Host "Processing $total service principals..."
 
 $SPNObject =@()
 foreach ($item in $apps) {
-$filterapps = $item.appid
+$count++
+    $percent = [math]::Round(($count / $total) * 100, 2)
+    Write-Host "Processing: $count of $total ($percent % complete) - ($item.DisplayName)"
+
+    $filterapps = $item.appid
 $getAppSAreport = get-mgbetaReportServicePrincipalSignInActivity -Filter "appId eq '$filterapps'" -Property *
 
 if ($getAppSAreport -ne $null){

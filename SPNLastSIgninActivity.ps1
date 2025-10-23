@@ -5,7 +5,7 @@ add trailing \ for directory or it will put it into the root of last \
 .\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\"
 #>
 param([parameter(mandatory=$false)][string] $tenantID,
-    [parameter(mandatory)][validateset("All", "Microsoft 1st Party")] [string]$AppOwner)
+    [parameter(mandatory)][validateset("All", "Microsoft 1st Party")] [string]$AppOwner,
     [parameter(mandatory)] [string]$Outputdirectory)
 
 # Connect to Microsoft Graph

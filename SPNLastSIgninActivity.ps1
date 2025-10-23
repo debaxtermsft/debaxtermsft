@@ -32,19 +32,19 @@ catch
 
 
 if ($AppOwner -eq "All") {
-    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId | Sort-Object displayname
+    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId, additionalproperties | Sort-Object displayname
     write-host "There are " $apps.count " service principals to scan, please be patient"
 }
 elseif ($AppOwner -eq "NoMSFT") {
-    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId | Sort-Object displayname | Where-Object { $_.AppOwnerOrganizationId -ne "72f988bf-86f1-41af-91ab-2d7cd011db47" -and $_.AppOwnerOrganizationId -ne "f8cdef31-a31e-4b4a-93e4-5f571e91255a" }
+    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId, additionalproperties | Sort-Object displayname | Where-Object { $_.AppOwnerOrganizationId -ne "72f988bf-86f1-41af-91ab-2d7cd011db47" -and $_.AppOwnerOrganizationId -ne "f8cdef31-a31e-4b4a-93e4-5f571e91255a" }
     write-host "There are " $apps.count " service principals to scan, please be patient"
 }
 elseif ($AppOwner -eq "AppId") {
-    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId | Sort-Object displayname | Where-Object { $_.Appid -eq $EnterAppId }
+    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId, additionalproperties | Sort-Object displayname | Where-Object { $_.Appid -eq $EnterAppId }
     write-host "There are " $apps.count " service principals to scan, please be patient"
 }
 else {
-    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId | Sort-Object displayname | Where-Object { $_.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47" -or $_.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" }
+    $apps = Get-MgServicePrincipal -all | Select-Object displayname, appid, AppOwnerOrganizationId, additionalproperties | Sort-Object displayname | Where-Object { $_.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47" -or $_.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" }
     write-host "There are " $apps.count " service principals to scan, please be patient"
 }
 

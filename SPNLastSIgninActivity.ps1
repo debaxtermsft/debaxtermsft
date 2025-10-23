@@ -10,7 +10,7 @@ if you want no 1st party applications
 .\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "NoMSFT"
 if you want 1 applications report
 .\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "Appid" -EnterAppId "AppId from SPN"
-
+ 
 
 #>
 param([parameter(mandatory=$false)][string] $tenantID,

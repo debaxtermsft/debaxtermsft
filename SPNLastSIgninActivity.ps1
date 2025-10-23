@@ -1,38 +1,68 @@
 <#
 Written by Derrick Baxter 10/23/25
-retrieves lastSigninActivity reports for Service Principa
-#>
-connect-mggraph -scopes "directory.read.all, application.read.all, auditlog.read.all"
+retrieves lastSigninActivity reports for Service Principals
+add trailing \ for directory or it will put it into the root of last \
+.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\"
 
-$apps = Get-MgServicePrincipal -all | Select-Object displayname, appid | Sort-Object displayname
+#>
+param([parameter(mandatory=$false)][string] $tenantID,
+    [parameter(mandatory)] [string]$Outputdirectory)
+
+# Connect to Microsoft Graph
+
+try
+    {
+        Get-MGDomain -ErrorAction Stop > $null
+    }
+catch
+    {
+        connect-mggraph -scopes "directory.read.all, application.read.all, auditlog.read.all" -TenantId $tenantID
+    }
+
+
+#$apps = Get-MgServicePrincipal -all | Select-Object displayname, appid | Sort-Object displayname | ?{$_.displayname -like "Microsoft *"}
+$apps = Get-MgServicePrincipal -all | Select-Object displayname, appid | Sort-Object displayname 
 
 $SPNObject =@()
-$reports =@()
 foreach ($item in $apps) {
-write-host "item appid" $item.appid
 $filterapps = $item.appid
 $getAppSAreport = get-mgbetaReportServicePrincipalSignInActivity -Filter "appId eq '$filterapps'" -Property *
-$getAppSAreport.lastsigninactivity.lastsignindatetime
-
-$reports += $getAppSAreport
 
 if ($getAppSAreport -ne $null){
-write-host "displayname of spn " $item.displayname
-write-host "reports count of activity" $reports.count
+[string]$cdt = $item.additionalproperties.values
 [string]$Lsia = $getAppSAreport.lastsigninactivity.lastsignindatetime
-$DCSIA  = $getAppSAreport.DelegatedClientSignInActivity.lastsigninDatetime
-$aacsia = $getAppSAreport.ApplicationAuthenticationClientSignInActivity.lastsigninDatetime
-$aarsia = $getAppSAreport.ApplicationAuthenticationResourceSignInActivity.lastsigninDatetime
-$drsia = $getAppSAreport.DelegatedResourceSignInActivity.LastSignInDateTime
-write-host "LAS Report date" $LAS " for " $item.displayname
+[string]$DCSIA  = $getAppSAreport.DelegatedClientSignInActivity.lastsigninDatetime
+[string]$aacsia = $getAppSAreport.ApplicationAuthenticationClientSignInActivity.lastsigninDatetime
+[string]$aarsia = $getAppSAreport.ApplicationAuthenticationResourceSignInActivity.lastsigninDatetime
+[string]$drsia = $getAppSAreport.DelegatedResourceSignInActivity.LastSignInDateTime
+
+[string]$LNIsia = $getAppSAreport.lastsigninactivity.LastNonInteractiveSignInDateTime
+
+if($item.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47" -or $item.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a") 
+{
+    $Msft1stPartyApp = "Microsoft 1st Party App"
+}
+else {
+    $Msft1stPartyApp = "Not MSFT"
+}
 
  $SPNObject += New-Object Object |
                     Add-Member -NotePropertyName "SPNDisplayName" -NotePropertyValue $item.displayname -PassThru |
+                    Add-Member -NotePropertyName "AppOwnerOrganizationId" -NotePropertyValue $item.AppOwnerOrganizationId -PassThru |
+                    Add-Member -NotePropertyName "Microsoft 1st PartyApp" -NotePropertyValue $Msft1stPartyApp -PassThru |
+                    Add-Member -NotePropertyName "SPNCreatedDateTime" -NotePropertyValue $cdt -PassThru |
                     Add-Member -NotePropertyName "SPNLastSigninActivityDate" -NotePropertyValue $Lsia -PassThru |
+                    Add-Member -NotePropertyName "SPNNonInteractiveLastSigninActivityDate" -NotePropertyValue $LNIsia -PassThru |
                     Add-Member -NotePropertyName "SPNApplicationAuthenticationClientSignInActivity" -NotePropertyValue $aacsia -PassThru | 
                     Add-Member -NotePropertyName "SPNApplicationAuthenticationResourceSignInActivity" -NotePropertyValue $aarsia -PassThru |
                     Add-Member -NotePropertyName "SPNDelegatedClientSignInActivity" -NotePropertyValue $DCSIA -PassThru |
                     Add-Member -NotePropertyName "SPNDelegatedResourceSignInActivity" -NotePropertyValue $drsia -PassThru 
 }
-else{write-host "NULL Date for " $item.displayname}
 }
+
+$SPNObject | ft 
+
+$tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
+$file = $Outputdirectory+"SPNSigninActivity_"+$tdy+".csv"
+$SPNObject | export-csv -path $file -NoTypeInformation -Encoding utf8
+

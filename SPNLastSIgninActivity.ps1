@@ -135,5 +135,5 @@ else{
 $SPNObject | ft 
 
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
-$file = $Outputdirectory+"+"+$AppOwner"SPNSigninActivity_"+$tdy+".csv"
+$file = $Outputdirectory+"SPNSigninActivity_"+$AppOwner+"_"+$tdy+".csv"
 $SPNObject | export-csv -path $file -NoTypeInformation -Encoding utf8

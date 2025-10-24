@@ -2,20 +2,23 @@
 Written by Derrick Baxter 10/23/25
 retrieves lastSigninActivity reports for Service Principals
 add trailing \ for directory or it will put it into the root of last \
+-daysback default is 90 if not added/entered
+
 NOTE: MAY TAKE A VERY LONG TIME!!! BE PATIENT (throttling may be added if reports of this come in)
-.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "all"
+.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "all" -daysback 180
 if you want only 1st party applications
-.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "Microsoft 1st Party"
+.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "Microsoft 1st Party"  -daysback 30
 if you want no 1st party applications
-.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "NoMSFT"
+.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "NoMSFT"  -daysback 60
 if you want 1 applications report
-.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "Appid" -EnterAppId "AppId from SPN"
+.\SPNLastSigninActivity.ps1 -tenantid "tenantguid" -outputdirectory "c:\temp\" -appowner "Appid" -EnterAppId "AppId from SPN" 
  
 
 #>
 param([parameter(mandatory=$false)][string] $tenantID,
     [parameter(mandatory)][validateset("All", "NoMSFT","Microsoft 1st Party", "AppId")] [string]$AppOwner,
     [parameter(mandatory=$false)] [string]$EnterAppId,
+    [parameter(mandatory=$false)] [int]$DaysBack,
     [parameter(mandatory)] [string]$Outputdirectory)
 
 # Connect to Microsoft Graph
@@ -29,6 +32,7 @@ catch
         connect-mggraph -scopes "directory.read.all, application.read.all, auditlog.read.all" -TenantId $tenantID
     }
 
+if($null -eq $DaysBack){$DaysBack = 90}
 
 
 if ($AppOwner -eq "All") {
@@ -71,6 +75,23 @@ if ($null -ne $getAppSAreport){
     [string]$aarsia = $getAppSAreport.ApplicationAuthenticationResourceSignInActivity.lastsigninDatetime
     [string]$drsia  = $getAppSAreport.DelegatedResourceSignInActivity.LastSignInDateTime
     [string]$LNIsia = $getAppSAreport.lastsigninactivity.LastNonInteractiveSignInDateTime
+
+    # Convert to datetime
+    $createdDate = [datetime]$cdt
+    $lastSignInDate = [datetime]$Lsia
+
+    # Current date
+    $now = Get-Date
+
+    # Calculate age
+    $daysSinceSignIn = ($now - $lastSignInDate).Days
+    $daysSinceCreated = ($now - $createdDate).Days
+
+    # Check conditions
+    if ($daysSinceSignIn -gt $DaysBack ) {
+        $SPNStale = "Application might be stale."
+        #Write-Host "Application might be stale. Last sign-in: $daysSinceSignIn days ago, Created: $daysSinceCreated days ago."
+    } 
 #write-host "LAS Report date" $LAS " for " $item.displayname
 
         if($item.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47" -or $item.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a") 
@@ -85,6 +106,8 @@ if ($null -ne $getAppSAreport){
         }
 
         $SPNObject += New-Object Object |
+                            Add-Member -NotePropertyName "Staleness" -NotePropertyValue $SPNStale -PassThru |
+                            Add-Member -NotePropertyName "LastActivity" -NotePropertyValue $daysSinceSignIn -PassThru |
                             Add-Member -NotePropertyName "SPNDisplayName" -NotePropertyValue $item.displayname -PassThru |
                             Add-Member -NotePropertyName "SPNappId" -NotePropertyValue $item.AppId -PassThru |
                             Add-Member -NotePropertyName "SPNId" -NotePropertyValue $item.Id -PassThru |
@@ -106,6 +129,27 @@ else{
     [string]$aarsia = "Null"
     [string]$drsia  = "Null"
     [string]$LNIsia = "Null"
+
+        # Convert to datetime
+        $createdDate = [datetime]$cdt
+        $lastSignInDate = $null
+
+        # Current date
+        $now = Get-Date
+
+        # Calculate age
+        #$daysSinceSignIn = ($now - $lastSignInDate).Days
+        $daysSinceCreated = ($now - $createdDate).Days
+
+        # Check conditions
+        if ($daysSinceCreated -gt $DaysBack  ) {
+            $SPNStale = "Application might be stale"
+            #Write-Host "Application might be stale. Last sign-in: $daysSinceSignIn days ago, Created: $daysSinceCreated days ago."
+        }
+        elseif($null -eq $lastSignInDate) {
+            $SPNStale = "Never Logged In Since Created"
+        }
+
         if ($item.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47" -or $item.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a") {
             $Msft1stPartyApp = "Microsoft 1st Party App"
         }
@@ -117,6 +161,8 @@ else{
         }
 
         $SPNObject += New-Object Object |
+                            Add-Member -NotePropertyName "Staleness" -NotePropertyValue $SPNStale -PassThru |
+                            Add-Member -NotePropertyName "LastActivity" -NotePropertyValue $daysSinceSignIn -PassThru |
                             Add-Member -NotePropertyName "SPNDisplayName" -NotePropertyValue $item.displayname -PassThru |
                             Add-Member -NotePropertyName "SPNappId" -NotePropertyValue $item.AppId -PassThru |
                             Add-Member -NotePropertyName "SPNId" -NotePropertyValue $item.Id -PassThru |

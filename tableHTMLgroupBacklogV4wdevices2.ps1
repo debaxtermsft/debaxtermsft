@@ -1,3 +1,42 @@
+<# Created 2025
+#update 4/8/2026 - added notes to run
+
+command line 
+.\tableHTMLgroupBacklogv4devices2.ps1 -tenantid <tenant guid> -daysback <default 30> -outputdirectory "c:\temp\" 
+output directory must have the trailing \ as in c:\temp\  NOT c:\temp
+
+IMPORTANT!!!
+
+To consent for users to run this script a global admin will need to run the following
+-------------------------------------------------------------------------------------------
+"AuditLog.Read.All, directory.read.all,Policy.Read.ConditionalAccess"
+$sp = get-mgserviceprincipal | ?{$_.displayname -eq "Microsoft Graph"}
+$resource = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
+$principalid = "users object id"
+$scope1 ="auditlog.read.all"
+$scope2 ="directory.read.all"
+$scope3 ="Policy.Read.ConditionalAccess"
+$today = Get-Date -Format "yyyy-MM-dd"
+$expiredate1 = get-date
+$expiredate2 = $expiredate1.AddDays(365).ToString("yyyy-MM-dd")
+$params = @{
+    ClientId = $SP.Id
+    ConsentType = "Principal"
+    ResourceId = $resource.id
+    principalId = $principalid
+    Scope = "$scope1" + " " + "$scope2"+ " " + "$scope3"
+    startTime = "$today"
+    expiryTime = "$expiredate2"
+    
+}
+
+$InitialConsented = New-MgOauth2PermissionGrant -BodyParameter $params
+-------------------------------------------------------------------------------------------
+You may need to update the connect-mggraph to have the -environment USGov or as needed -tenantid <tenantid> can be added as needed.
+
+
+
+
 param([parameter(mandatory=$false)][string] $tenantID,
     [parameter (mandatory)][int]$DaysBack,
     [parameter(mandatory)] [string]$Outputdirectory)

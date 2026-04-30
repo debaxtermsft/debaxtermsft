@@ -119,5 +119,5 @@ $filtered | Sort-Object Contains_Type, DisplayName | Format-Table -AutoSize -Wra
 
 # Optional: Export to CSV
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
- $outputfile = $Outputdirectory+"DynamicGroup_contains_match_memberof_"+$tdy+".csv"
+ $outputfile = $Outputdirectory+"_"+$GroupOption+"_DynamicGroup_contains_match_memberof_"+$ExportFileType+"_"+$tdy+".csv"
  $filtered | Export-Csv -Path $outputfile -NoTypeInformation

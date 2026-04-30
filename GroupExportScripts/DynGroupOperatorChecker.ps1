@@ -2,6 +2,20 @@
 the below Powershell module to find and export dynamic groups with operators that could affect processing performance
 4/20/2026 based on documentation for dynamic group performance
 https://learn.microsoft.com/en-us/entra/identity/users/groups-dynamic-rule-more-efficient
+
+HTML Output
+.\DynGroupOperatorChecker.ps1  -ExportFileType HTML -GroupOption Contains
+.\DynGroupOperatorChecker.ps1  -ExportFileType HTML -GroupOption Match
+.\DynGroupOperatorChecker.ps1  -ExportFileType HTML -GroupOption memberOf
+.\DynGroupOperatorChecker.ps1  -ExportFileType HTML -GroupOption All
+CSV output
+.\DynGroupOperatorChecker.ps1  -ExportFileType CSV -GroupOption Contains
+.\DynGroupOperatorChecker.ps1  -ExportFileType CSV -GroupOption Match
+.\DynGroupOperatorChecker.ps1  -ExportFileType CSV -GroupOption memberOf
+.\DynGroupOperatorChecker.ps1  -ExportFileType CSV -GroupOption All
+
+
+
 #>
 
 
@@ -117,7 +131,45 @@ $filtered = switch ($groupoption.ToLower()) {
 
 $filtered | Sort-Object Contains_Type, DisplayName | Format-Table -AutoSize -Wrap
 
-# Optional: Export to CSV
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
- $outputfile = $Outputdirectory+"_"+$GroupOption+"_DynamicGroup_contains_match_memberof_"+$ExportFileType+"_"+$tdy+".csv"
- $filtered | Export-Csv -Path $outputfile -NoTypeInformation
+ $outputfile = $GroupOption+"_DynamicGroup_contains_match_memberof_"+$tdy+"."+$ExportFileType
+ $fullfileoutput = $Outputdirectory+$GroupOption+"_DynamicGroup_contains_match_memberof_"+$tdy+"."+$ExportFileType
+
+<#if ($ExportFileType -eq "CSV")
+    {
+        $filtered | Export-Csv -Path $outputfile -NoTypeInformation
+        Write-Host "CSV export complete: $outputfile" -ForegroundColor Green
+    }
+else #>
+
+
+if ($ExportFileType -eq 'HTML') {
+
+    $filtered |
+    Select-Object DisplayName, Id, Contains_Type, MembershipRule |
+
+    ConvertTo-Html `
+        -Title "Dynamic Group Operator Report" `
+        -PreContent "<h2>Dynamic Group Operator Report - $GroupOption</h2>" `
+        -PostContent "<p>Generated: $(Get-Date)</p>" `
+        -Head @"
+<style>
+body { font-family: Segoe UI; font-size: 10pt; }
+table { border-collapse: collapse; width: 100%; }
+th { background-color: #0078D4; color: white; padding: 6px; text-align: left; }
+td { border: 1px solid #ddd; padding: 5px; vertical-align: top; }
+tr:nth-child(even) { background-color: #f2f2f2; }
+</style>
+"@ |
+
+    Out-File -FilePath "$fullfileoutput" -Encoding utf8
+
+    Write-Host "HTML export complete: $fullfileoutput" -ForegroundColor Green
+}
+else{
+            $filtered | Export-Csv -Path "$fullfileoutput" -NoTypeInformation
+        Write-Host "CSV export complete: $fullfileoutput" -ForegroundColor Green
+}
+
+
+

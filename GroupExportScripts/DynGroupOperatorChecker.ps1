@@ -14,6 +14,9 @@ CSV output
 .\DynGroupOperatorChecker.ps1  -ExportFileType CSV -GroupOption memberOf
 .\DynGroupOperatorChecker.ps1  -ExportFileType CSV -GroupOption All
 
+Output results to Screen without export file created
+.\DynGroupOperatorChecker.ps1  -GroupOption All -ExportFileType ScreenOnly
+
 
 
 #>
@@ -21,7 +24,7 @@ CSV output
 
 param([parameter(Position=0,mandatory)][validateset("All","SingleGroupLookup","Contains","Match","memberOf")] [string]$GroupOption="All",
         [parameter(Position=1,mandatory=$false)][string]$GroupObjectID,
-        [parameter (Position=4,mandatory=$false)][validateset("HTML", "CSV")] [string]$ExportFileType="CSV",
+        [parameter (Position=4,mandatory=$false)][validateset("HTML", "CSV", "ScreenOnly")] [string]$ExportFileType="ScreenOnly",
         [parameter(Position=2,mandatory=$false)][string] $tenantID,
         [parameter(Position=3,mandatory=$false)] [string]$Outputdirectory="C:\temp\")
 
@@ -129,18 +132,10 @@ $filtered = switch ($groupoption.ToLower()) {
     }
 }
 
-$filtered | Sort-Object Contains_Type, DisplayName | Format-Table -AutoSize -Wrap
 
 $tdy = get-date -Format "MM-dd-yyyy_hh.mm.ss"
  $outputfile = $GroupOption+"_DynamicGroup_contains_match_memberof_"+$tdy+"."+$ExportFileType
  $fullfileoutput = $Outputdirectory+$GroupOption+"_DynamicGroup_contains_match_memberof_"+$tdy+"."+$ExportFileType
-
-<#if ($ExportFileType -eq "CSV")
-    {
-        $filtered | Export-Csv -Path $outputfile -NoTypeInformation
-        Write-Host "CSV export complete: $outputfile" -ForegroundColor Green
-    }
-else #>
 
 
 if ($ExportFileType -eq 'HTML') {
@@ -166,10 +161,18 @@ tr:nth-child(even) { background-color: #f2f2f2; }
 
     Write-Host "HTML export complete: $fullfileoutput" -ForegroundColor Green
 }
-else{
-            $filtered | Export-Csv -Path "$fullfileoutput" -NoTypeInformation
-        Write-Host "CSV export complete: $fullfileoutput" -ForegroundColor Green
-}
+elseif($ExportFileType -eq 'CSV')
+    {
+                $filtered | Export-Csv -Path "$fullfileoutput" -NoTypeInformation
+            Write-Host "CSV export complete: $fullfileoutput" -ForegroundColor Green
+            $filtered | Sort-Object Contains_Type, DisplayName | Format-Table -AutoSize -Wrap
+
+    }
+else {
+    <# screen output only #>
+    $filtered | Sort-Object Contains_Type, DisplayName | Format-Table -AutoSize -Wrap
+    
+    }
 
 
 

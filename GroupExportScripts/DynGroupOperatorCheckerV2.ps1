@@ -197,8 +197,8 @@ $filtered = switch ($GroupOption.ToLower()) {
     default    { $results }  # "All" and "SingleGroupLookup"
 }
 
-$filtered | Sort-Object OrCount, AndCount, DisplayName | Format-Table -AutoSize -Wrap
-``
+#$filtered | Sort-Object OrCount, AndCount, DisplayName | Format-Table -AutoSize -Wrap
+
 
 # Display results
 

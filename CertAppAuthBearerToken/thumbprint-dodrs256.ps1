@@ -1,7 +1,16 @@
 <#
 written by derrick baxter
 create rs256 bearer token, auth and sharepoint search
-10/30/2026#>
+10/30/2026
+
+To get your thumbprint run
+Get-ChildItem Cert:\CurrentUser\My |
+    Select-Object Subject,Thumbprint,HasPrivateKey,NotAfter |
+    Format-Table -AutoSize
+
+Select the thumbprint for testing
+
+#>
 
 
 $ErrorActionPreference = 'Stop'

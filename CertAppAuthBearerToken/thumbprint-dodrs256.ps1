@@ -12,6 +12,19 @@ Select the thumbprint for testing
 
 #>
 
+# Reset previous authentication test variables
+$tokenResponse = $null
+$sites = $null
+$headers = $null
+$body = $null
+
+$ps256SignedJwt = $null
+$rs256SignedJwt = $null
+
+$unsigned = $null
+$sig = $null
+$header = $null
+$claims = $null
 
 $ErrorActionPreference = 'Stop'
  $tenantId = 'tenantid'
@@ -75,20 +88,39 @@ $body = @{
    client_assertion_type = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
    client_assertion = $rs256SignedJwt
  }
-try {
-   $tokenResponse = Invoke-RestMethod -Method POST -Uri $tokenEndpoint -Body $body -ContentType 'application/x-www-form-urlencoded' -ErrorAction Stop
-   Write-Host 'CERTIFICATE AUTHENTICATION SUCCESSFUL' -ForegroundColor Green
-   Write-Host 'Algorithm: RS256; token type:' $tokenResponse.token_type
-   Write-Host 'Expires in:' $tokenResponse.expires_in 'seconds'
-   Write-Host 'Access token received:' ([bool]$tokenResponse.access_token)
- } catch {
-   Write-Host 'CERTIFICATE AUTHENTICATION FAILED' -ForegroundColor Red
-   Write-Host $_.Exception.Message
-   if ($_.ErrorDetails.Message) { Write-Host $_.ErrorDetails.Message }
- } finally {
-   $body.Remove('client_assertion')
-   $rs256SignedJwt = $null
- }
+
+ try {
+    $tokenResponse = Invoke-RestMethod `
+        -Method POST `
+        -Uri $tokenEndpoint `
+        -Body $body `
+        -ContentType 'application/x-www-form-urlencoded' `
+        -ErrorAction Stop
+
+    if (-not $tokenResponse.access_token) {
+        throw 'Authentication response did not contain an access token.'
+    }
+
+    Write-Host 'CERTIFICATE AUTHENTICATION SUCCESSFUL' -ForegroundColor Green
+    Write-Host 'Algorithm: RS256; token type:' $tokenResponse.token_type
+    Write-Host 'Expires in:' $tokenResponse.expires_in 'seconds'
+    Write-Host 'Access token received:' $true
+
+}
+catch {
+    Write-Host 'CERTIFICATE AUTHENTICATION FAILED' -ForegroundColor Red
+    Write-Host $_.Exception.Message
+
+    if ($_.ErrorDetails.Message) {
+        Write-Host $_.ErrorDetails.Message
+    }
+
+    throw
+}
+finally {
+    $body.Remove('client_assertion')
+    $rs256SignedJwt = $null
+}
 
 
 $headers = @{ Authorization = "Bearer $($tokenResponse.access_token)"; Accept='application/json' }
